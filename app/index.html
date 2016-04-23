@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Social games</title>
+  <title>Carrom</title>
   <meta name="description" content="Social games">
   <link rel="shortcut icon"type="image/x-icon" href="data:image/x-icon;,"><!-- Suppress browser request for favicon.ico -->
   <meta http-equiv="Content-Security-Policy" content="default-src * data:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
@@ -15,10 +15,55 @@
   <!-- CSS for material design -->
   <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'>
   <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css">
+  
+  <link rel="stylesheet" href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 
 <script type="text/ng-template" id="html-templates/mainPage.html">
 <div class="box max_height">
+  
   <div class="box_header">
+    <md-toolbar style="min-height: 75px;" 
+        class="md-whiteframe-glow-z1 site-content-toolbar light-blue lighten-1" 
+        ng-cloak>
+              
+      <div layout="row" class="md-toolbar-tools docs-toolbar-tools" style="min-height: 75px;">
+
+        <md-button ng-click="toggleLeft()" style="color: white;"
+          class="md-icon-button md-primary" hide-gt-md aria-label="Menu">
+          <!-- <ng-md-icon icon="menu" style="fill: white" size="22"></ng-md-icon> 
+          <button class="md-icon-button md-button md-ink-ripple hide-gt-sm" type="button" ng-transclude="" ng-click="openMenu()" hide-gt-sm="" aria-label="Toggle Menu"> -->
+          
+          <i class="material-icons">menu</i>
+
+        </md-button>
+
+        <div layout="row" class="fill-height layout-row flex">
+          
+          <div id="test_game_name" class="game-name">
+            <h5 class="md-toolbar-item md-headline">{{main.game().name()}}</h5>
+          </div>
+        </div>
+
+        <span flex class="flex"></span>
+
+        
+        <md-button 
+            aria-label="Open demo menu" 
+            ng-click="$mdOpenMenu($event)">
+          <img id="test_my_avatar_img" alt="Your avatar" ng-click="main.showMyInfoModal()"
+          ng-src="{{main.me().getAvatarImage()}}" class="avatar">
+        </md-button>
+        
+
+      </div>
+    </md-toolbar>
+  </div>
+
+  <!-- HEADER -->
+  <!-- <div class="box_header">
+    
+    
     <div class="header">
       <div id="test_game_name" class="game-name">{{main.game().name()}}</div>
       <div class="main-avatar-container">
@@ -26,7 +71,9 @@
           ng-src="{{main.me().getAvatarImage()}}" class="avatar">
       </div>
     </div>
-  </div>
+
+
+  </div> -->
   <div class="overflow-y-scroll max_height">
     <div class="box_content max_height">
       <div ng-if="main.yourTurnMatches().length">
@@ -87,6 +134,8 @@
   </div>
 </div>
 <div class="new-match-fab">
+  <!-- New Match Fab is Here -->
+
   <md-button id="test_open_new_match_modal" class="md-fab new-match-fab" aria-label="FAB"
       ng-click="main.showModal('newMatchModal')">
     <md-tooltip md-direction="left">
@@ -94,6 +143,7 @@
     </md-tooltip>
     <span style="font-size: 28px;">+</span>
   </md-button>
+
 </div>
 </script>
 
@@ -168,14 +218,30 @@
 
 
 </head>
-<body ng-class="{'backgroundColor': main.isFinishedLoading()}">
+<body ng-controller="SideNavCtrl" ng-class="{'backgroundColor': main.isFinishedLoading()}" ng-cloak layout="row">
 
 <img ng-if="!main.isFinishedLoading()"
   style="position: absolute; display:block; left: 0; top: 0; right: 0; bottom: 0; margin: auto;"
   src="imgs/animatedEllipse.gif">
 
-<div ng-if="main.isFinishedLoading()" class="max_height" ng-cloak>
-  <div ng-view class="max_height"></div>
+<md-sidenav class="md-sidenav-left md-whiteframe-z2" 
+        md-component-id="left" md-is-locked-open="$mdMedia('gt-md')">
+  
+  <md-content layout-padding role="navigation" flex layout="column" layout-align="center none">
+    
+    <a class="md-primary md-raised md-button md-ink-ripple" aria-label="Analytics" href="#/campaigns">
+        My Promotions
+    </a>
+
+    <span flex></span>
+  </md-content>
+</md-sidenav>
+
+<div ng-if="main.isFinishedLoading()" class="max_height" layout="column" tabIndex="-1" role="main" flex>
+
+  <md-content md-scroll-y layout="column" flex>
+    <div ng-view class="max_height"></div>
+  </md-content>
 
   <div class="notifications-container">
     <div class="notification" ng-repeat="notification in main.notifications()">
@@ -221,6 +287,7 @@
           {{ 'MODAL_BUTTON_CLOSE' | translate }}
         </button>
       </div>
+
       <div class="new-match-fab">
         <md-button id="test_extra_match_options_open_new_match_modal" class="md-fab new-match-fab" aria-label="FAB"
             ng-click="main.showModal('newMatchModal')">
@@ -410,15 +477,57 @@
 
 <script>
 function gamingPlatformInitFinished() {
+  function SideNavCtrl($scope, $mdSidenav, $timeout) {
+    
+    $scope.toggleLeft = buildDelayedToggler('left');
+
+    /**
+     * Supplies a function that will continue to operate until the
+     * time is up.
+     */
+    function debounce(func, wait, context) {
+      var timer;
+      return function debounced() {
+        var context = $scope,
+            args = Array.prototype.slice.call(arguments);
+        $timeout.cancel(timer);
+        timer = $timeout(function() {
+          timer = undefined;
+          func.apply(context, args);
+        }, wait || 10);
+      };
+    }
+    /**
+     * Build handler to open/close a SideNav; when animation finishes
+     * report completion in console
+     */
+    function buildDelayedToggler(navID) {
+      return debounce(function() {
+        $mdSidenav(navID)
+          .toggle()
+          .then(function () {
+            // $log.debug("toggle " + navID + " is done");
+          });
+      }, 200);
+    }
+  }
+
   angular.module('whateverNameApp', ["gamingPlatformModule", 'ngMaterial'])
       .config(['$mdThemingProvider', '$mdIconProvider', 
         function ($mdThemingProvider, $mdIconProvider) {
           $mdThemingProvider
               .theme('default')
-              .primaryPalette('brown')
-              .accentPalette('red');
-        }]);
+              .primaryPalette('red')
+              .accentPalette('deep-orange');
+        }])
+      .config(['$controllerProvider',
+        function ($controllerProvider) {
+            $controllerProvider.allowGlobals();
+        }
+      ])
+      .controller('SideNavCtrl', ['$scope', '$mdSidenav', '$timeout', SideNavCtrl]);
   angular.bootstrap(document, ["whateverNameApp"]);
+
 }
 </script>
 
