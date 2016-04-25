@@ -438,8 +438,9 @@
     <div ng-view class="max_height"></div>
   </md-content>
 
-  <div class="notifications-container">
-    <div class="notification" ng-repeat="notification in main.notifications()">
+  <!-- <div class="notifications-container">
+    <div class="notification"
+      ng-repeat="notification in main.notifications()">
       <div class="notification-content">
         <img alt="Player avatar" class="avatar notification-avatar"
             ng-if="notification.player()" width="50" height="50"
@@ -452,7 +453,7 @@
       </div>
       <div class="notification-dismiss" ng-click="notification.onClose()">X</div>
     </div>
-  </div>
+  </div> -->
 
   <div ng-show="main.showGameIframe()"
     ng-class="main.shouldShowTopBar() ? 'opened_game_header' : 'closed_game_header'"
@@ -676,12 +677,25 @@
 </style>
 <script type="text/ng-template" id="notification1.tmpl.html">
   <md-toast>
-    <span ng-click="clickToast()" class="md-toast-text" flex>You made a move in some game blah blah!!</span>
-    <md-button 
+    <!-- <span ng-click="clickToast()" class="md-toast-text" flex> -->
+    <!-- {{notification._message}} -->
+      <div class="notification-content" class="md-toast-text" flex>
+        <img alt="Player avatar" class="avatar notification-avatar"
+            ng-if="notification.player()" width="50" height="50"
+            ng-click="main.showPlayerInfoModal(notification.player(), notification.match())"
+            ng-src="{{notification.player().getAvatarImage()}}">
+        <div ng-click="notification.onClick()">
+          <div class="notification-title" ng-if="notification.title()">{{notification.title()}}</div>
+          <div class="notification-body" ng-if="notification.message()">{{notification.message()}}</div>
+        </div>
+      </div>
+
+    <!-- </span> -->
+    <!-- <md-button 
         aria-label="Open demo menu" >
       <img id="test_my_avatar_img" alt="Your avatar" ng-click="main.showMyInfoModal()"
       ng-src="{{main.me().getAvatarImage()}}" class="avatar">
-    </md-button>
+    </md-button> -->
     <md-button class="md-icon-button" 
       ng-click="closeToast()">
       <md-icon aria-label="Close dialog">
@@ -755,7 +769,10 @@
 <script>
 function gamingPlatformInitFinished() {
   
-  function ToastCtrl($scope, $mdToast, main) {
+  function ToastCtrl($scope, $mdToast, main, notification) {
+    $scope.main = main;
+    $scope.notification = notification;
+
     $scope.clickToast = function() {
       console.log("CLICKED TOAST");
     };
@@ -818,6 +835,46 @@ function gamingPlatformInitFinished() {
   function SideNavCtrl($scope, $mdSidenav, $timeout, $mdDialog, $mdMedia, $mdToast) {
     
     $scope.toggleLeft = buildDelayedToggler('left');
+    
+    $scope.$watch(function() { 
+        console.log("WATCH");
+        console.log($scope.main.notifications().length)
+        return $scope.main.notifications().length > 0; 
+    }, function(value) {
+        // Do something every time $scope.data.length > 0 changes
+        console.log("PLS WORK");
+        console.log(value);
+        
+        
+        
+
+        if(value){
+          console.log($scope.main.notifications());
+          var notifications = $scope.main.notifications();
+          var notification = notifications[notifications.length-1];
+          console.log(notification);
+
+          $mdToast.show({
+            hideDelay   : 0,
+            position    : 'top',
+            controller  : ToastCtrl,
+            templateUrl : 'notification1.tmpl.html',
+            locals: { main: $scope.main, notification: notification}
+          });
+        }
+    });
+
+    
+
+    // $scope.$watch("main.notifications(), 
+    //   function(newValue, oldValue){
+    //     console.log("Watch");
+    //     console.log(newValue);
+    //     if(newValue != undefined){
+          
+    //     }
+        
+    // });
 
     $scope.showAdvanced = function(ev) {
 
@@ -828,22 +885,7 @@ function gamingPlatformInitFinished() {
       console.log($scope.main.me());
       console.log($scope.main.loadGameAndMyPlayerInfo);
       console.log($scope.main.playerInPlayerInfoModal());
-      
-
-      $scope.$watch($scope.main.playerInPlayerInfoModal($scope.main.me(), $scope.main.game()), 
-        function(newValue, oldValue){
-          console.log(newValue)
-      });
-
     
-      $mdToast.show({
-        hideDelay   : 0,
-        position    : 'top',
-        controller  : ToastCtrl,
-        templateUrl : 'notification1.tmpl.html',
-        locals: { main: $scope.main}
-      });
-
       
       $mdDialog.show({
         controller: DialogController,
