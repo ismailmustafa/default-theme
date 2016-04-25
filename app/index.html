@@ -831,10 +831,15 @@ function gamingPlatformInitFinished() {
   angular.module('whateverNameApp', ["gamingPlatformModule", 'ngMaterial'])
       .config(['$mdThemingProvider', '$mdIconProvider', 
         function ($mdThemingProvider, $mdIconProvider) {
+          
+          
+
           $mdThemingProvider
               .theme('altTheme')
               .primaryPalette('purple')
-              .backgroundPalette('light-green');
+              .backgroundPalette('purple',{
+                'hue-1': '50'
+              });
 
           $mdThemingProvider
               .theme('default')
