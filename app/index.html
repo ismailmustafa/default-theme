@@ -438,7 +438,7 @@
   
   <md-content layout-padding role="navigation" flex layout="column" layout-align="center none">
     
-    <md-button id="test_extra_match_options_goto_main" class="md-warn md-hue-2 md-raised md-button md-ink-ripple"
+    <md-button id="test_extra_match_options_goto_main" class="md-warn md-raised md-button md-ink-ripple"
         ng-click="closeSidenav(); main.changePage('/main')">
       <small class="md-caption">{{ 'TO_MAIN_MENU' | translate }}</small>
     </md-button>
@@ -446,7 +446,7 @@
         ng-click="closeSidenav(); main.shareInviteLink({takePrintscreen: true})">
       <small class="md-caption">{{ 'MATCH_SHARE_PRINTSCREEN' | translate }}</small>
     </md-button>
-    <md-button id="test_dismiss_match" class="md-warn md-hue-2 md-raised md-button md-ink-ripple"
+    <md-button id="test_dismiss_match" class="md-warn md-raised md-button md-ink-ripple"
         ng-click="closeSidenav(); main.currentMatch().dismissAndLoadNextMatchOrMainPage();"
         ng-if="!main.currentMatch().isSinglePlayer()">
       <small class="md-caption">{{ main.currentMatch().isOver() ? 'MATCH_DELETE' : 'MATCH_RESIGN_AND_DELETE' | translate }}</small>
@@ -740,8 +740,68 @@
     
   </md-toast>
 </script>
+<!-- Other Player Info -->
+<script type="text/ng-template" id="otherPlayerInfo.tmpl.html">
+  <md-dialog aria-label="{{ 'MODAL_TITLE_USER_INFO' | translate }}"  ng-cloak>
+    <form>
+      <md-toolbar>
+        <div class="md-toolbar-tools">
+          <h2>{{ 'MODAL_TITLE_USER_INFO' | translate }}</h2>
+          <span flex></span>
+          <md-button class="md-icon-button" ng-click="cancel()">
+            <md-icon aria-label="Close dialog">
+              <i class="material-icons">clear</i>
+            </md-icon>
+          </md-button>
+        </div>
+      </md-toolbar>
+      <md-dialog-content>
+        <div class="md-dialog-content">
+          <md-input-container class="md-icon-float md-block">
+            <md-icon>
+              <i class="material-icons">language</i>
+            </md-icon>
+            <md-select ng-model="selectedItem" md-selected-text="getSelectedText()">
+              <md-optgroup>
+                <md-option ng-value="item" ng-repeat="item in items">{{item.name}}</md-option>
+              </md-optgroup>
+            </md-select>
+          </md-input-container>
+          <md-content>
+            <md-input-container class="md-icon-float md-block">
+              <!-- Use floating label instead of placeholder -->
+              <label>{{ 'MODAL_USER_INFO_NAME' | translate }}</label>
+              <md-icon>
+                <i class="material-icons">perm_identity</i>
+              </md-icon>
+              <input ng-model="user.newDisplayName" type="text">
+            </md-input-container>
+            <md-input-container md-no-float class="md-block">
+              <label>{{ 'MODAL_USER_INFO_USERNAME' | translate }}</label>
+              <md-icon>
+                <i class="material-icons">portrait</i>
+              </md-icon>
+              <input ng-model="user.newUserName" type="text">
+            </md-input-container>
+          </md-content>
+        </div>
+      </md-dialog-content>
+      <md-dialog-actions layout="row">
+        <md-button ng-click="cancel()" md-theme="custom" 
+          class="md-accent md-raised md-button md-ink-ripple" style="margin-right:20px;">
+          Cancel
+        </md-button>
+        <span flex></span>
+        
+        <md-button ng-click="answer()" class="md-warn md-raised md-button" style="margin-right:20px;">
+          Save
+        </md-button>
+      </md-dialog-actions>
+    </form>
+  </md-dialog>
+</script>
 
-<script type="text/ng-template" id="dialog1.tmpl.html">
+<script type="text/ng-template" id="myInfo.tmpl.html">
    <md-dialog aria-label="{{ 'MODAL_TITLE_USER_INFO' | translate }}"  ng-cloak>
     <form>
       <md-toolbar>
@@ -909,7 +969,7 @@ function gamingPlatformInitFinished() {
       
       $mdDialog.show({
         controller: DialogController,
-        templateUrl: 'dialog1.tmpl.html',
+        templateUrl: 'myInfo.tmpl.html',
         parent: angular.element(document.body),
         targetEvent: ev,
         clickOutsideToClose:true,
