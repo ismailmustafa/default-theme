@@ -58,19 +58,19 @@
   </md-toolbar>
 
 
-  <md-content md-scroll-y layout="column"  flex>
+  <md-content md-theme="custom2" md-scroll-y layout="column"  flex>
 
     <div ng-if="main.yourTurnMatches().length">
 
-      <md-subheader class="md-primary">{{ 'MAIN_MATCH_GROUP_YOUR_TURN_MATCHES' | translate }}</md-subheader>
+      <md-subheader md-theme="default" class="md-primary">{{ 'MAIN_MATCH_GROUP_YOUR_TURN_MATCHES' | translate }}</md-subheader>
 
-      <md-content 
+      <md-content
           ng-repeat="match in main.yourTurnMatches() track by match.getMatchId()"
           class="md-padding" 
           layout-align="center center"
           layout="row">
 
-          <md-card md-theme-watch>
+          <md-card md-theme="default">
             <md-card-title ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})">
               <md-card-title-text ng-click="match.load()">
                 <span class="md-head">
@@ -103,7 +103,7 @@
 
     <div ng-if="main.opponentTurnMatches().length">
 
-      <md-subheader class="md-primary">{{ 'MAIN_MATCH_GROUP_OPPONENT_TURN_MATCHES' | translate }}</md-subheader>
+      <md-subheader md-theme="default" class="md-primary">{{ 'MAIN_MATCH_GROUP_OPPONENT_TURN_MATCHES' | translate }}</md-subheader>
 
       <md-content 
           ng-repeat="match in main.opponentTurnMatches() track by match.getMatchId()"
@@ -111,7 +111,7 @@
           layout-align="center center"
           layout="row">
 
-          <md-card md-theme-watch>
+          <md-card md-theme="default">
             <md-card-title ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})">
               <md-card-title-text ng-click="match.load()">
                 <span class="md-head">
@@ -144,7 +144,7 @@
 
     <div ng-if="main.endedMatches().length">
 
-      <md-subheader class="md-primary">{{ 'MAIN_MATCH_GROUP_OPPONENT_TURN_MATCHES' | translate }}</md-subheader>
+      <md-subheader md-theme="default" class="md-primary">{{ 'MAIN_MATCH_GROUP_OPPONENT_TURN_MATCHES' | translate }}</md-subheader>
 
       <md-content 
           ng-repeat="match in main.endedMatches() track by match.getMatchId()"
@@ -152,7 +152,7 @@
           layout-align="center center"
           layout="row">
 
-          <md-card md-theme-watch>
+          <md-card md-theme="default">
             <md-card-title ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})">
               <md-card-title-text ng-click="match.load()">
                 <span class="md-head">
@@ -395,7 +395,7 @@
 
 <div ng-if="main.isFinishedLoading()" class="max_height" layout="column" tabIndex="-1" role="main" flex>
 
-  <md-content md-scroll-y layout="column" flex>
+  <md-content md-theme="custom2" md-scroll-y layout="column" flex>
     <div ng-view class="max_height"></div>
   </md-content>
 
@@ -834,12 +834,12 @@ function gamingPlatformInitFinished() {
           $mdThemingProvider
               .theme('altTheme')
               .primaryPalette('purple')
-              .backgroundPalette('blue-grey');
+              .backgroundPalette('light-green');
 
           $mdThemingProvider
               .theme('default')
               .primaryPalette('red')
-              .accentPalette('deep-orange');
+              .accentPalette('deep-orange')
 
           $mdThemingProvider.theme('custom')
           .primaryPalette('grey')
@@ -871,6 +871,7 @@ function gamingPlatformInitFinished() {
 
          $mdThemingProvider.theme('custom2')
               .primaryPalette('amazingPaletteName')
+              .backgroundPalette('deep-purple');
           
 
         }])
