@@ -647,6 +647,16 @@
       </md-toolbar>
       <md-dialog-content>
         <div class="md-dialog-content">
+          <md-input-container class="md-icon-float md-block">
+            <md-icon>
+              <i class="material-icons">language</i>
+            </md-icon>
+            <md-select ng-model="selectedItem" md-selected-text="getSelectedText()">
+              <md-optgroup>
+                <md-option ng-value="item" ng-repeat="item in items">{{item.name}}</md-option>
+              </md-optgroup>
+            </md-select>
+          </md-input-container>
           <md-content>
             <md-input-container class="md-icon-float md-block">
               <!-- Use floating label instead of placeholder -->
@@ -692,7 +702,31 @@ function gamingPlatformInitFinished() {
     $scope.user.newUserName      = "Something";
 
     console.log($scope.main.model());
-    
+    console.log($scope.main.l10n().getSupportedLanguages());
+    $scope.supportedLanguages = $scope.main.l10n().getSupportedLanguages();
+
+    $scope.items = []; //[1, 2, 3, 4, 5, 6, 7];
+    $scope.currentLanguage = undefined;
+
+    angular.forEach($scope.supportedLanguages, function(value, key) {
+      if($scope.main.model().currentLanguage == value.code){
+        $scope.currentLanguage = value;
+      }
+      this.push(value);
+    }, $scope.items);
+
+
+    $scope.selectedItem;
+
+    $scope.getSelectedText = function() {
+      if ($scope.selectedItem !== undefined) {
+        $scope.main.l10n().changeLanguage($scope.selectedItem.code);
+
+        return $scope.selectedItem.name;
+      } else {
+        return $scope.currentLanguage.name;
+      }
+    };
 
     $scope.hide = function() {
       $mdDialog.hide();
