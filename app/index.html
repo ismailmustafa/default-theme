@@ -272,8 +272,40 @@
 
 
 <script type="text/ng-template" id="html-templates/playPage.html">
-<div ng-if="main.currentMatch()">
-  <div class="container-fluid nonexpanding nomargins">
+<div class="box max_height">
+  <md-content ng-if="main.currentMatch()">
+
+  <md-toolbar class="md-whiteframe-glow-z1 site-content-toolbar light-blue lighten-1" 
+      ng-cloak>
+            
+    <div layout="row" class="md-toolbar-tools docs-toolbar-tools" style="min-height: 75px;">
+
+      <span layout-padding  ng-repeat="player in main.currentMatch().getPlayers({limit:3, excludeSinglePlayer: true})" flex>
+        <img alt="Player avatar" ng-class="{avatar: true, 'avatar-has-turn': main.currentMatch().isTurnOf(player)}"
+          
+          ng-src="{{player.getAvatarImage()}}"
+          ng-click="main.showPlayerInfoModal(player, main.currentMatch())">
+      
+
+      </span>
+
+      <h2 id="test_match_status_text">
+        {{main.currentMatch().getMatchStatusText({showDisplayName:true})}}
+      </h2>
+
+      <span flex></span>
+
+      <md-button class="md-icon-button" ng-click="main.showModal('extraMatchOptionsModal')">
+        <md-icon aria-label="Close dialog">
+          <i class="material-icons">menu</i>
+        </md-icon>
+      </md-button>
+
+    </div>
+  </md-toolbar>
+
+
+  <!-- <div class="container-fluid nonexpanding nomargins">
     <div ng-if="main.shouldShowTopBar()" class="game_header">
       <div class="game_header_inner">
         <button id="test_open_extra_match_options_modal" type="button" class="button"
@@ -297,8 +329,9 @@
     <div id="test_toggle_top_bar" class="topbar_toggler" ng-click="main.toggleTopBar()">
       <span class="topbar_toggler_span">&#10092;</span>
     </div>
-  </div>
+  </div> -->
   
+  </md-content>
 </div>
 </script>
 
