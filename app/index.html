@@ -385,7 +385,7 @@
         md-component-id="left" md-is-locked-open="$mdMedia('gt-md')">
   
   <md-content layout-padding role="navigation" flex layout="column" layout-align="center none">
-    <a class="md-raised md-button md-ink-ripple" href="#/">
+    <a ng-if="main.isFinishedLoading()" class="md-raised md-button md-ink-ripple" href="#/">
       <div>
         <img ng-src="{{main.me().getAvatarImage()}}" class="avatar" alt="" style="max-height: 150px;">  
 
