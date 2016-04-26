@@ -611,21 +611,19 @@
 <script type="text/ng-template" id="notification1.tmpl.html">
   <md-toast>
     
-      <div class="notification-content" class="md-toast-text" flex>
-        <md-button 
-          aria-label="Open demo menu" >
-          
-          <img alt="Player avatar" class="avatar notification-avatar"
-              ng-if="notification.player()" width="50" height="50"
-              ng-click="main.showPlayerInfoModal(notification.player(), notification.match())"
-              ng-src="{{notification.player().getAvatarImage()}}">
-
-        </md-button>
-        <div ng-click="notification.onClick()">
-          <div class="notification-title" ng-if="notification.title()">{{notification.title()}}</div>
-          <div class="notification-body" ng-if="notification.message()">{{notification.message()}}</div>
-        </div>
+    <img alt="Player avatar" class="avatar notification-avatar"
+        width="50" height="50"
+        ng-if="notification.player()"
+        ng-click="main.showPlayerInfoModal(notification.player(), notification.match())"
+        ng-src="{{notification.player().getAvatarImage()}}">
+    
+    <div class="notification-content" class="md-toast-text" flex>
+      
+      <div ng-click="notification.onClick()">
+        <div class="notification-title" ng-if="notification.title()">{{notification.title()}}</div>
+        <div class="notification-body" ng-if="notification.message()">{{notification.message()}}</div>
       </div>
+    </div>
 
     <md-button class="md-icon-button" 
       ng-click="closeToast()">
