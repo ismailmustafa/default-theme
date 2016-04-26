@@ -760,14 +760,8 @@ function gamingPlatformInitFinished() {
   
   function ToastCtrl($scope, $mdToast, main, notification) {
 
-    console.log("ToastCtrl");
-
     $scope.main = main;
     $scope.notification = notification;
-
-    $scope.clickToast = function() {
-      console.log("CLICKED TOAST");
-    };
 
     $scope.closeToast = function() {
       
@@ -781,17 +775,15 @@ function gamingPlatformInitFinished() {
 
   function DialogController($scope, $mdDialog, main) {
 
-    console.log("DialogController");
     $scope.main   = main;
     $scope.user   = {};
     $scope.user.newDisplayName   = $scope.main.me().displayName;
     $scope.user.newUserName      = "Something";
 
-    // console.log($scope.main.model());
-    // console.log($scope.main.l10n().getSupportedLanguages());
+    
     $scope.supportedLanguages = $scope.main.l10n().getSupportedLanguages();
 
-    $scope.items = []; //[1, 2, 3, 4, 5, 6, 7];
+    $scope.items = []; 
     $scope.currentLanguage = undefined;
 
     angular.forEach($scope.supportedLanguages, function(value, key) {
@@ -832,8 +824,6 @@ function gamingPlatformInitFinished() {
     $scope.toggleRight = buildDelayedToggler('right');
 
     $scope.$watch(function() { 
-        console.log("WATCH");
-        console.log($scope.main.notifications().length);
         return $scope.main.notifications().length; 
     }, function(value) {
         // Do something every time $scope.main.notifications.length > 0 changes
@@ -858,11 +848,6 @@ function gamingPlatformInitFinished() {
 
       var useFullScreen = ($mdMedia('sm') || $mdMedia('xs'))  && $scope.customFullscreen;
       
-      console.log("TEST: ");
-      console.log($scope.main);
-      console.log($scope.main.me());
-    
-      
       $mdDialog.show({
         controller: DialogController,
         templateUrl: 'myInfo.tmpl.html',
@@ -873,9 +858,7 @@ function gamingPlatformInitFinished() {
         locals: { main: $scope.main}
       })
       .then(function(result) {
-        console.log("RES: ");
-        console.log(result);
-
+        
         $scope.main.model().newDisplayName = result.newDisplayName;
         $scope.main.model().newUserName    = result.newUserName;
 
@@ -884,12 +867,6 @@ function gamingPlatformInitFinished() {
       }, function() {
         $scope.status = 'You cancelled the dialog.';
       });
-      
-      // $scope.$watch(function() {
-      //   return $mdMedia('xs') || $mdMedia('sm');
-      // }, function(wantsFullScreen) {
-      //   $scope.customFullscreen = (wantsFullScreen === true);
-      // });
 
     };
 
