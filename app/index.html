@@ -23,7 +23,7 @@
 <div class="box max_height">
   
   
-  <md-toolbar style="min-height: 75px;" 
+  <md-toolbar style="min-height: 75px;"  
       class="md-whiteframe-glow-z1 site-content-toolbar light-blue lighten-1" 
       ng-cloak>
             
@@ -35,6 +35,7 @@
         <i class="material-icons">menu</i>
 
       </md-button>
+
 
       <div layout="row" class="fill-height layout-row flex">
         
@@ -274,7 +275,7 @@
 <div class="box max_height">
   <md-content ng-if="main.currentMatch()">
 
-  <md-toolbar class="md-whiteframe-glow-z1 site-content-toolbar light-blue lighten-1" 
+  <md-toolbar hide show-xs class="md-whiteframe-glow-z1 site-content-toolbar light-blue lighten-1" 
       ng-cloak>
             
     <div layout="row" class="md-toolbar-tools docs-toolbar-tools" style="min-height: 75px;">
@@ -303,7 +304,6 @@
 
     </div>
   </md-toolbar>
-
 
   <!-- <div class="container-fluid nonexpanding nomargins">
     <div ng-if="main.shouldShowTopBar()" class="game_header">
@@ -495,6 +495,15 @@
     class="game_container"
     ng-bind-html="main.game().getIframeHtml()"></div>
 
+  <md-button ng-show="main.showGameIframe()" hide show-gt-xs
+      id="test_open_new_match_modal" class="md-fab new-match-fab md-fab-bottom-right" 
+      aria-label="FAB" ng-click="toggleRight()">
+
+    <md-icon style="color: white;">
+      <i class="material-icons">apps</i>
+    </md-icon>
+    
+  </md-button>
   <!-- Extra match options Modal -->
   <!-- It can't be inside a template, because then hiding the modal won't be animated, leading to a bug in ngMaterial, see https://github.com/angular/material/issues/7978 -->
   <div ng-controller="ModalCtrl as modal" ng-init="modal.init('extraMatchOptionsModal')">
