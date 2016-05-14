@@ -17,7 +17,7 @@
 
 <script type="text/ng-template" id="html-templates/mainPage.html">
 <div layout="row" class="full_screen">
-  <md-sidenav class="md-whiteframe-z3" md-theme="altTheme"
+  <md-sidenav class="md-whiteframe-z3"
       ng-class="main.l10n().isRtl() ? 'md-sidenav-right' : 'md-sidenav-left'"
       md-component-id="left" md-is-locked-open="$mdMedia('gt-xs')">
     <md-toolbar>
@@ -110,6 +110,13 @@
           {{ 'MODAL_BUTTON_CLOSE' | translate }}
         </md-button>
       </md-menu-item>
+
+      <md-divider class="menu-divider"></md-divider>
+
+      <small class="md-caption" style="margin-left: 10px;"> 
+        Pranav Dhar and Ismail Mustafa
+      </small>
+
     </md-content>
   </md-sidenav>
   <div flex layout="column" tabIndex="-1" role="main">
@@ -129,7 +136,7 @@
         <h2 id="test_game_name">{{main.game().name()}}</h2>
       </div>
     </md-toolbar>
-    <md-content  md-theme="custom2" flex ng-class="sideNavIsOpen() ? 'not-scrollable' : 'overflow-y-scroll'">
+    <md-content flex ng-class="sideNavIsOpen() ? 'not-scrollable' : 'overflow-y-scroll'">
       <section ng-if="main.yourTurnMatches().length">
         <md-subheader class="md-primary">{{ 'MAIN_MATCH_GROUP_YOUR_TURN_MATCHES' | translate }}</md-subheader>
         <md-list>
