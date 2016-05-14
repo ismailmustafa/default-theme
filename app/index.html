@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-strict-di manifest="index.appcache">
+<html ng-strict-di dir='{{main.l10n().isRtl() ? "rtl" : "ltr"}}' manifest="index.appcache">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -288,7 +288,9 @@
 
 <div ng-if="main.isFinishedLoading()" class="max_height" layout="column" tabIndex="-1" role="main" flex>
 
-  <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-theme="altTheme"
+  <md-sidenav 
+        ng-class="main.l10n().isRtl() ? 'md-sidenav-right' : 'md-sidenav-left'"
+        class="md-whiteframe-z2" md-theme="altTheme"
         md-component-id="left" md-is-locked-open="$mdMedia('gt-md')">
   
     <md-content layout-padding role="navigation" flex layout="column" layout-align="center none">
@@ -604,6 +606,7 @@
 <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js"></script>
   
+<script src="ts/app-l10n.js"></script>
 <script crossorigin="anonymous" src="http://www.multiplayer-gaming.com/api/loader.min.js?app=v201"></script>
 <style type="text/css">
   md-toast .md-toast-content{
