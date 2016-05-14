@@ -10,13 +10,14 @@
   <!-- To ensure CSS files are downloaded in parallel, always include external CSS before external JavaScript. -->
   <link rel="stylesheet" href="css/gameDeveloper.min.css"/>
 
-  <script crossorigin="anonymous" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
+  <script crossorigin="anonymous" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
 
-  <script crossorigin="anonymous" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-route.min.js"></script>
+  <script crossorigin="anonymous" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-route.min.js"></script>
 
   <link crossorigin="anonymous" rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 
-  <script crossorigin="anonymous" src="http://www.multiplayer-gaming.com/api/loader.min.js?gamedeveloper=v201"></script>
+  
+<script crossorigin="anonymous" src="http://www.multiplayer-gaming.com/api/loader.min.js?gamedeveloper=v201"></script>
 
   <script>
   function gamingPlatformInitFinished() {
@@ -322,7 +323,24 @@ otherwise({redirectTo: '/main'});
   
   <h4>[Optional] Theme</h4>
   <div class="form-group">
-    It's possible to modify the HTML and CSS of the gaming platform by
+    <label>
+      Theme customization, e.g., <a href="https://github.com/yoav-zibin/default-theme" target="_blank">
+        the default theme
+      </a> allows customizing primaryPalette and accentPalette:<br>
+      <textarea rows="5" cols="80" 
+          json-text ng-model="developerGame.game.themeCustomization"
+          ng-model-options="{updateOn: 'blur'}"
+          placeholder="{{developerGame.placeholderThemeCustomizationJson}}">
+      </textarea><br>
+    </label>
+    <br>
+    Example customization:<br>
+    <textarea readonly rows="2" cols="100" ng-model="developerGame.placeholderThemeCustomizationJson">
+    </textarea>
+  </div>
+  
+  <div class="form-group">
+    It's also possible to modify the HTML and CSS of the gaming platform by
     forking
       <a href="https://github.com/yoav-zibin/default-theme" target="_blank">
         the default theme
@@ -333,6 +351,7 @@ otherwise({redirectTo: '/main'});
     <label>
       Enter your theme URL here (either github.io, e.g., <code>http://yoav-zibin.github.io/default-theme/</code>,
       or if you have your own domain, e.g., <code>http://gameinvite.us/</code>).
+      If you enter a URL, then any JS exceptions that happen will be emailed to you as bug reports.
       The URL must match <code>http://SOMETHING/</code>:<br>
       <input size="80" type="url" class="form-control" ng-model="developerGame.game.themeBaseUrl" pattern="^http[:][/][/].+[/]$" placeholder="http://yoav-zibin.github.io/default-theme/">
       <br>
@@ -341,12 +360,32 @@ otherwise({redirectTo: '/main'});
     Test your 
       <a href="{{developerGame.game.themeBaseUrl}}app/index.html" target="_blank">app</a>
       and
-      <a href="{{developerGame.game.themeBaseUrl}}gameinvite/index.html" target="_blank">gameinvite</a>
+      <a href="{{developerGame.game.themeBaseUrl}}/index.html" target="_blank">gameinvite</a>
       (and
       <a href="{{developerGame.game.themeBaseUrl}}gamedeveloper/gameDeveloper.html" target="_blank">gamedeveloper</a>
       ).
       </div>
   </div>
+  
+  <div class="form-group">
+    <label>
+      Gameinvite URL (e.g., <code>http://gameinvite.us/</code>).
+      The URL must match <code>http://SOMETHING/</code>:<br>
+      <input size="80" type="url" class="form-control" ng-model="developerGame.game.themeGameinviteUrl" pattern="^http[:][/][/].+[/]$" placeholder="http://gameinvite.us/">
+    </label>
+  </div>
+  <div class="form-group">
+    <label>
+      <input type="checkbox" ng-model="developerGame.game.omitGameNameFromGameinviteUrl">
+      Should the platform OMIT the lowercase game name in gameinvite URL? 
+      (Only check this if you know what you're doing! 
+      See <a href="https://github.com/yoav-zibin/ycheckers.us/blob/gh-pages/index.html" target="_blank">ycheckers.us example</a>.)
+    </label>
+  </div>
+    <div ng-if="developerGame.game.themeGameinviteUrl">
+      <a href="{{developerGame.game.themeGameinviteUrl}}?yoav.zibin{{developerGame.game.omitGameNameFromGameinviteUrl ? '' : '=' + developerGame.game.lowercaseGameName}}" 
+        target="_blank">Test your gameinvite URL</a>  
+    </div>
   
   <h4>[Optional] Localized text used in push notifications</h4>
   After forking 
@@ -362,7 +401,7 @@ otherwise({redirectTo: '/main'});
   </textarea><br>
   For example, if your game supports exactly {{developerGame.getLangCodeAndName('en')}} and {{developerGame.getLangCodeAndName('iw')}} then you could paste this:
   <br>
-  <textarea readonly rows="3" cols="100" ng-model="developerGame.pushNotificationsL10nsSampleJson">
+  <textarea readonly rows="2" cols="100" ng-model="developerGame.pushNotificationsL10nsSampleJson">
   </textarea>
   <br>
 

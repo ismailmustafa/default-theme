@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Carrom</title>
+  <title>Social games</title>
   <meta name="description" content="Social games">
   <link rel="shortcut icon"type="image/x-icon" href="data:image/x-icon;,"><!-- Suppress browser request for favicon.ico -->
   <meta http-equiv="Content-Security-Policy" content="default-src * data:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
@@ -13,974 +13,546 @@
   <link rel="stylesheet" href="css/app.min.css"/>
 
   <!-- CSS for material design -->
-  <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'>
-  <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css">
-  
-  <link rel="stylesheet" href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
+  <link rel="stylesheet" href="http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular-material.min.css">
 
 <script type="text/ng-template" id="html-templates/mainPage.html">
-<div class="box max_height">
-  
-  
-  <md-toolbar style="min-height: 73px;"  
-      class="md-whiteframe-glow-z1 site-content-toolbar light-blue lighten-1" 
-      ng-cloak>
-            
-    <div layout="row" class="md-toolbar-tools docs-toolbar-tools" style="min-height: 75px;">
-
-      <md-button ng-click="toggleLeft()" style="color: white;"
-        class="md-icon-button md-primary" hide-gt-md aria-label="Menu">
-        
-        <i class="material-icons">menu</i>
-
-      </md-button>
-
-
-      <div layout="row" class="fill-height layout-row flex">
-        
-        <div id="test_game_name" class="game-name">
-          <h5 class="md-toolbar-item md-headline">{{main.game().name()}}</h5>
-        </div>
+<div layout="row" class="full_screen">
+  <md-sidenav class="md-whiteframe-z3" md-theme="altTheme"
+      ng-class="main.l10n().isRtl() ? 'md-sidenav-right' : 'md-sidenav-left'"
+      md-component-id="left" md-is-locked-open="$mdMedia('gt-xs')">
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <img id="test_my_avatar_img" alt="Your avatar"
+          ng-src="{{main.me().getAvatarImage()}}" 
+          class="avatar" style="margin-right: 14px;">
+        <h3 ng-if="main.fb().isLoggedIn()">{{main.me().getDisplayName()}}</h3>
+        <md-input-container ng-if="!main.fb().isLoggedIn()">
+          <input style="margin-top: 20px;"
+              md-select-on-focus
+              aria-label="{{'MODAL_USER_INFO_NAME' | translate }}" 
+              ng-model="main.model().newDisplayName"
+              ng-model-options="{updateOn: 'default blur', debounce: { 'default': 10000, 'blur': 0 } }"
+              ng-change="main.saveMyInfo()" maxlength="30" required>
+        </md-input-container>
       </div>
-
-      <span flex class="flex"></span>
-
-      <md-button 
-          aria-label="Open demo menu" 
-          ng-click="$mdOpenMenu($event)">
-        <img id="test_my_avatar_img" alt="Your avatar" ng-click="main.showMyInfoModal()"
-        ng-src="{{main.me().getAvatarImage()}}" class="avatar">
-      </md-button>
+    </md-toolbar>
+    <md-content>
       
+      <div id="test_my_info_fb_login"
+          ng-if="main.fb().showLoginButton()"
+          ng-click="main.fb().login()" class="facebook-login">
+        {{ 'MAIN_LOG_IN_WITH_FACEBOOK' | translate }}
+      </div>
+          
+      <md-menu-item>
+        <div layout="row">
+          <md-icon class="material-icons" style="margin: 5px 16px auto 0;">language</md-icon>
+          <md-select
+              style="margin: 0"
+              aria-label="{{'LANGUAGE' | translate }}" 
+              ng-if="main.l10n().getSupportedLanguages().length > 1"
+              ng-model="main.model().currentLanguage" 
+              ng-change="main.l10n().changeLanguage(main.model().currentLanguage)">
+            <md-option ng-repeat="language in main.l10n().getSupportedLanguages()" value="{{language.code}}">{{language.name}}</md-option>
+          </md-select>
+        </div>
+      </md-menu-item>
+      
+      <md-divider class="menu-divider"></md-divider>
+      <!-- Same 3 elements in the FAB -->
+      <md-menu-item>
+        <md-button id="test_start_multiplayer_auto_match" ng-click="main.newMultiplayerAutoMatch()">
+          <md-icon class="material-icons">shuffle</md-icon>
+          {{ 'MAIN_NEW_AUTO_MATCH_TITLE' | translate }}
+        </md-button>
+      </md-menu-item>
+      
+      <md-menu-item ng-if="!main.game().isHidePracticeOption()">
+        <md-button id="test_start_practice" ng-click="main.newSinglePlayer('practice')">
+          <md-icon class="material-icons">person</md-icon>
+          {{ 'MAIN_PRACTICE_TITLE' | translate }}
+        </md-button>
+      </md-menu-item>
+      
+      <md-menu-item ng-if="!main.game().isHidePassAndPlayOption()">
+        <md-button id="test_start_pass_and_play" ng-click="main.newSinglePlayer('passAndPlay')">
+          <md-icon class="material-icons">smartphone</md-icon>
+          {{ 'MAIN_PASS_AND_PLAY_TITLE' | translate }}
+        </md-button>
+      </md-menu-item>
+      <md-divider class="menu-divider"></md-divider>
+      
+      <md-menu-item ng-if="main.fb().isLoggedIn()">
+        <md-button id="test_goto_invite_friends" ng-click="main.changePage('/inviteFriends')">
+          <md-icon class="material-icons">people</md-icon>
+          {{ 'MAIN_INVITE_FRIENDS_TITLE' | translate }}
+        </md-button>
+      </md-menu-item>
+      
+      <md-menu-item>
+        <!-- I set image&message&subject to false because otherwise sharing via FB fails on Android. -->
+        <md-button id="test_share_invite_link_no_printscreen" ng-click="main.shareInviteLink({takePrintscreen: false, link: true, image: false, message: false, subject: false})">
+          <md-icon class="material-icons">share</md-icon>
+          {{ 'MAIN_SHARE_INVITE_LINK_TITLE' | translate }}
+        </md-button>
+      </md-menu-item>
+          
+      <md-menu-item>
+        <md-button id="test_open_feedback_modal" ng-click="openFeedbackDialog()">
+          <md-icon class="material-icons">feedback</md-icon>
+          <span id="test_open_feedback_btn_name">{{ 'MAIN_FEEDBACK_AND_BUGS_TITLE' | translate }}</span>
+        </md-button>
+      </md-menu-item>
+      
+      <md-menu-item hide-gt-xs>
+        <md-button id="test_close_left_nav" ng-click="$mdSidenav('left').close()">
+          <md-icon class="material-icons">close</md-icon>
+          {{ 'MODAL_BUTTON_CLOSE' | translate }}
+        </md-button>
+      </md-menu-item>
+    </md-content>
+  </md-sidenav>
+  <div flex layout="column" tabIndex="-1" role="main">
+    <!-- md-scroll-shrink is sometimes broken: https://github.com/angular/material/issues/8258 
+      From material docs:
+      * _**Note (1):** for scrollShrink to work, the toolbar must be a sibling of a
+      * `md-content` element, placed before it. See the scroll shrink demo._
+    -->
+    <md-toolbar md-scroll-shrink>
+      <div class="md-toolbar-tools">
+        <md-button
+            id="test_menu_button"
+            hide-gt-xs 
+            ng-click="$mdSidenav('left').toggle()" class="md-icon-button" aria-label="Menu">
+          <md-icon class="material-icons">menu</md-icon>
+        </md-button>
+        <h2 id="test_game_name">{{main.game().name()}}</h2>
+      </div>
+    </md-toolbar>
+    <md-content  md-theme="custom2" flex ng-class="sideNavIsOpen() ? 'not-scrollable' : 'overflow-y-scroll'">
+      <section ng-if="main.yourTurnMatches().length">
+        <md-subheader class="md-primary">{{ 'MAIN_MATCH_GROUP_YOUR_TURN_MATCHES' | translate }}</md-subheader>
+        <md-list>
+          <md-list-item class="md-2-line" 
+              ng-repeat="match in main.yourTurnMatches() track by match.getMatchId()">
+            <img 
+                  ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})"
+                  ng-src="{{player.getAvatarImage()}}"
+                  ng-click="showPlayerBottomSheet(player, match)"
+                  alt="{{player.getDisplayName()}}" 
+                  class="md-avatar">
+            <div class="md-list-item-text" ng-click="match.load()">
+              <h3 ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})">
+                {{player.getDisplayName()}}</h3>
+              <p>
+                {{main.timeAgo(match.updatedTime())}}
+              </p>
+            </div>
+            <md-icon class="material-icons md-secondary md-hue-3" 
+                aria-label="{{'MATCH_RESIGN_AND_DELETE' | translate }}"
+                ng-click="swipedMatch(match)">delete</md-icon>
+          </md-list-item>
+        </md-list>
+        <md-divider inset></md-divider>
+      </section>
+      <section ng-if="main.opponentTurnMatches().length">
+        <md-subheader class="md-primary">{{ 'MAIN_MATCH_GROUP_OPPONENT_TURN_MATCHES' | translate }}</md-subheader>
+        <md-list>
+          <md-list-item class="md-2-line" 
+                ng-repeat="match in main.opponentTurnMatches() track by match.getMatchId()">
+              <img 
+                  ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})"
+                  ng-src="{{player.getAvatarImage()}}"
+                  ng-click="showPlayerBottomSheet(player, match)"
+                  alt="{{player.getDisplayName()}}" 
+                  class="md-avatar">
+            <div class="md-list-item-text" ng-click="match.load()">
+              <h3 ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})">
+                {{player.getDisplayName()}}</h3>
+              <p>
+                {{main.timeAgo(match.updatedTime())}}
+              </p>
+            </div>
+            <md-icon class="material-icons md-secondary md-hue-3" 
+                aria-label="{{'MATCH_RESIGN_AND_DELETE' | translate }}"
+                ng-click="swipedMatch(match)">delete</md-icon>
+          </md-list-item>
+        </md-list>
+        <md-divider inset></md-divider>
+      </section>
+      <section ng-if="main.endedMatches().length">
+        <md-subheader class="md-primary">{{ 'MAIN_MATCH_GROUP_ENDED_MATCHES' | translate }}</md-subheader>
+        <md-list>
+          <md-list-item class="secondary-button-padding md-3-line" 
+              ng-repeat="match in main.endedMatches() track by match.getMatchId()">
+              
+            <img 
+                  ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})"
+                  ng-src="{{player.getAvatarImage()}}"
+                  ng-click="showPlayerBottomSheet(player, match)"
+                  alt="{{player.getDisplayName()}}" 
+                  class="md-avatar">
+            <div class="md-list-item-text" ng-click="match.load()">
+              <h3 ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})">
+                {{player.getDisplayName()}}</h3>
+              <h4>{{match.getMatchStatusText({showDisplayName:false})}}</h4>
+              <p>
+                {{main.timeAgo(match.updatedTime())}}
+              </p>
+            </div>
+            <md-icon class="material-icons md-secondary md-hue-3"
+                aria-label="{{'MATCH_DELETE' | translate }}"
+                ng-click="match.dismiss()">delete</md-icon>
+          </md-list-item>
+        </md-list>
+        <md-divider inset></md-divider>
+      </section>
+      <!-- The delete icon of the last match may be hidden behind the FAB, so I'm adding some empty space. 
+          There is also a scrolling bug if the list is slightly larger than screen height, which hides the last element. -->
+      <div style="height: 75px; min-height: 75px;"></div>
+    </md-content>
+    <div class="new-match-fab">
+      <md-menu>
+        <md-button ng-click="$mdOpenMenu($event)" id="test_open_new_match_modal" class="md-fab" aria-label="FAB">
+          <md-icon class="material-icons">add</md-icon>
+        </md-button>
 
+        <md-menu-content>
+          <md-menu-item>
+            <md-button id="test_fab_start_multiplayer_auto_match" ng-click="main.newMultiplayerAutoMatch()">
+              <md-icon class="material-icons">shuffle</md-icon>
+              {{ 'MAIN_NEW_AUTO_MATCH_TITLE' | translate }}
+            </md-button>
+          </md-menu-item>
+          
+          <md-menu-item ng-if="!main.game().isHidePracticeOption()">
+            <md-button id="test_fab_start_practice" ng-click="main.newSinglePlayer('practice')">
+              <md-icon class="material-icons">person</md-icon>
+              {{ 'MAIN_PRACTICE_TITLE' | translate }}
+            </md-button>
+          </md-menu-item>
+          
+          <md-menu-item ng-if="!main.game().isHidePassAndPlayOption()">
+            <md-button id="test_fab_start_pass_and_play" ng-click="main.newSinglePlayer('passAndPlay')">
+              <md-icon class="material-icons">smartphone</md-icon>
+              {{ 'MAIN_PASS_AND_PLAY_TITLE' | translate }}
+            </md-button>
+          </md-menu-item>
+        </md-menu-content>
+      </md-menu>
     </div>
-  </md-toolbar>
-
-
-  <md-content md-theme="custom2" md-scroll-y layout="column"  flex>
-
-    <div ng-if="main.yourTurnMatches().length">
-
-      <md-subheader md-theme="default" class="md-primary">{{ 'MAIN_MATCH_GROUP_YOUR_TURN_MATCHES' | translate }}</md-subheader>
-
-      <md-content
-          ng-repeat="match in main.yourTurnMatches() track by match.getMatchId()"
-          class="md-padding" 
-          layout-align="center center"
-          layout="row">
-
-          <md-card md-theme="default">
-            <md-card-title ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})">
-              <md-card-title-text ng-click="match.load()">
-                <span class="md-head">
-                  {{ player.displayName }} 
-                </span>
-                <span class="md-subhead">
-                  {{ 'MAIN_MATCH_LAST_MOVE_ON' | translate }} 
-                  {{match.updatedTime() | date:'short'}}
-                </span>
-                <span class="md-subhead">
-                  {{ 'MAIN_MATCH_STARTED_ON' | translate }} 
-                  {{match.createdTime() | date:'short'}}
-                </span>
-              </md-card-title-text>
-              <md-card-title-media 
-                ng-click="main.showPlayerInfoModal(player, match)">
-                <div class="md-media-sm card-media">
-
-                  <img alt="Player avatar" ng-class="{img: true}"
-                    
-                    ng-src="{{player.getAvatarImage()}}"
-                    >
-                </div>
-              </md-card-title-media>
-            </md-card-title>
-          </md-card>
-        
-      </md-content>
-    </div>
-
-    <div ng-if="main.opponentTurnMatches().length">
-
-      <md-subheader md-theme="default" class="md-primary">{{ 'MAIN_MATCH_GROUP_OPPONENT_TURN_MATCHES' | translate }}</md-subheader>
-
-      <md-content 
-          ng-repeat="match in main.opponentTurnMatches() track by match.getMatchId()"
-          class="md-padding" 
-          layout-align="center center"
-          layout="row">
-
-          <md-card md-theme="default">
-            <md-card-title ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})">
-              <md-card-title-text ng-click="match.load()">
-                <span class="md-head">
-                  {{ player.displayName }} 
-                </span>
-                <span class="md-subhead">
-                  {{ 'MAIN_MATCH_LAST_MOVE_ON' | translate }} 
-                  {{match.updatedTime() | date:'short'}}
-                </span>
-                <span class="md-subhead">
-                  {{ 'MAIN_MATCH_STARTED_ON' | translate }} 
-                  {{match.createdTime() | date:'short'}}
-                </span>
-              </md-card-title-text>
-              <md-card-title-media 
-                ng-click="main.showPlayerInfoModal(player, match)">
-                <div class="md-media-sm card-media">
-
-                  <img alt="Player avatar" ng-class="{img: true}"
-                    
-                    ng-src="{{player.getAvatarImage()}}"
-                    >
-                </div>
-              </md-card-title-media>
-            </md-card-title>
-          </md-card>
-        
-      </md-content>
-    </div>
-
-    <div ng-if="main.endedMatches().length">
-
-      <md-subheader md-theme="default" class="md-primary">{{ 'MAIN_MATCH_GROUP_ENDED_MATCHES' | translate }}</md-subheader>
-
-      <md-content 
-          ng-repeat="match in main.endedMatches() track by match.getMatchId()"
-          class="md-padding" 
-          layout-align="center center"
-          layout="row">
-
-          <md-card md-theme="default">
-            <md-card-title ng-repeat="player in match.getPlayers({limit:1, excludeMe: true})">
-              <md-card-title-text ng-click="match.load()">
-                <span class="md-head">
-                  {{ player.displayName }} 
-                </span>
-                <span class="md-subhead">
-                  {{ 'MAIN_MATCH_LAST_MOVE_ON' | translate }} 
-                  {{match.updatedTime() | date:'short'}}
-                </span>
-                <span class="md-subhead">
-                  {{ 'MAIN_MATCH_STARTED_ON' | translate }} 
-                  {{match.createdTime() | date:'short'}}
-                </span>
-              </md-card-title-text>
-              <md-card-title-media 
-                ng-click="main.showPlayerInfoModal(player, match)">
-                <div class="md-media-sm card-media">
-
-                  <img alt="Player avatar" ng-class="{img: true}"
-                    
-                    ng-src="{{player.getAvatarImage()}}"
-                    >
-                </div>
-              </md-card-title-media>
-            </md-card-title>
-          </md-card>
-        
-      </md-content>
-
-    </div>
-  </md-content>
-
+  </div>
 </div>
-<div class="new-match-fab">
-  <!-- New Match Fab is Here -->
-
-  <md-button id="test_open_new_match_modal" class="md-fab new-match-fab md-fab-bottom-right" 
-      aria-label="FAB" ng-click="showAdvanced()">
-    <md-icon style="color: white;">
-      <i class="material-icons">apps</i>
-    </md-icon>
-    
-  </md-button>
-
-</div>
+</section>
 </script>
 
 
 <script type="text/ng-template" id="html-templates/playPage.html">
-<div class="box max_height">
-  <md-content ng-if="main.currentMatch()">
-
-  <md-toolbar hide show-xs class="md-whiteframe-glow-z1 site-content-toolbar light-blue lighten-1" 
-      ng-cloak>
-            
-    <div layout="row" class="md-toolbar-tools docs-toolbar-tools" style="min-height: 75px;">
-
-      <span layout-padding  ng-repeat="player in main.currentMatch().getPlayers({limit:3, excludeSinglePlayer: true})" flex>
-        <img alt="Player avatar" ng-class="{avatar: true, 'avatar-has-turn': main.currentMatch().isTurnOf(player)}"
-          
-          ng-src="{{player.getAvatarImage()}}"
-          ng-click="main.showPlayerInfoModal(player, main.currentMatch())">
-      
-
-      </span>
-
-      <h2 id="test_match_status_text">
-        {{main.currentMatch().getMatchStatusText({showDisplayName:true})}}
-      </h2>
-
-      <span flex></span>
-
-      <md-button class="md-icon-button" ng-click="toggleRight()">
-        <md-icon aria-label="Close dialog">
-          <i class="material-icons">menu</i>
-        </md-icon>
+<div ng-if="main.currentMatch()">
+  <md-toolbar ng-class="main.shouldShowTopBar() ? '' : 'closed_game_header'">
+    <div class="md-toolbar-tools">
+      <md-button
+          id="test_play_page_goto_main"
+          ng-click="main.changePage('/main')" 
+          class="md-icon-button"
+          aria-label="{{ 'TO_MAIN_MENU' | translate }}">
+        <md-icon 
+            class="material-icons">{{main.l10n().isRtl() ? 'arrow_forward' : 'arrow_back'}}</md-icon>
       </md-button>
-
+      <h2 ng-if="main.shouldShowTopBar()" id="test_match_status_text" style="margin: 0 10px 0 0;">
+        {{main.currentMatch().getMatchStatusText({showDisplayName:false})}}
+      </h2>
+      <span flex></span>
+      <img ng-if="main.shouldShowTopBar()" 
+          alt="Player avatar"
+          style="margin: 0 5px 0 0;" 
+          ng-class="{avatar: true, 'avatar-has-turn': main.currentMatch().isTurnOf(player)}"
+          ng-repeat="player in main.currentMatch().getPlayers({limit:3, excludeSinglePlayer: true})"
+          ng-src="{{player.getAvatarImage()}}"
+          ng-click="showPlayerBottomSheet(player, main.currentMatch())">
+          
+      <md-menu>
+        <md-button class="md-icon-button" ng-click="$mdOpenMenu($event)" id="test_open_play_page_menu" aria-label="Play menu">
+          <md-icon
+              class="material-icons">more_vert</md-icon>
+        </md-button>
+        <md-menu-content>
+          <md-menu-item>
+            <md-button id="test_share_invite_link_with_printscreen" 
+                ng-click="main.shareInviteLink({takePrintscreen: true})">
+              <md-icon class="material-icons">share</md-icon>
+              {{ 'MATCH_SHARE_PRINTSCREEN' | translate }}
+            </md-button>
+          </md-menu-item>
+          <md-menu-item ng-if="main.currentMatch().canStartNewMatch()">
+            <md-button id="test_start_rematch" ng-click="main.currentMatch().startNewMatch()">
+              <md-icon class="material-icons">replay</md-icon>
+              {{ main.currentMatch().isSinglePlayer() ? 'MATCH_NEW_GAME' : 'REMATCH' | translate }}
+            </md-button>
+          </md-menu-item>
+          <md-menu-item ng-if="main.currentMatch().getNextMatch()">
+            <md-button id="test_load_next"
+                ng-click="main.currentMatch().getNextMatch().load()">
+              <md-icon class="material-icons">{{ main.l10n().isRtl() ? 'navigate_before' : 'navigate_next' }}</md-icon>
+              {{ 'MATCH_LOAD_NEXT' | translate }}
+            </md-button>
+          </md-menu-item>
+          <md-menu-item>
+            <md-button id="test_toggle_top_bar"
+                ng-click="main.toggleTopBar()">
+              <md-icon class="material-icons">{{ main.shouldShowTopBar() ? 'zoom_in' : 'zoom_out' }}</md-icon>
+              {{ main.shouldShowTopBar() ? 'MAXIMIZE_GAME' : 'SHOW_PLAYERS' | translate }}
+            </md-button>
+          </md-menu-item>
+          <md-menu-item>
+            <md-button id="test_show_game_instructions"
+                ng-click="main.passMessageToGame({SHOW_GAME_INSTRUCTIONS: true})">
+              <md-icon class="material-icons">help</md-icon>
+              {{ 'GAME_INSTRUCTIONS' | translate }}
+            </md-button>
+          </md-menu-item>
+          
+          <md-divider ng-if="!main.currentMatch().isSinglePlayer()" class="menu-divider"></md-divider>
+          <md-menu-item ng-if="!main.currentMatch().isSinglePlayer()">
+            <md-button class="md-warn" id="test_dismiss_match"
+                ng-click="main.currentMatch().dismissAndLoadNextMatchOrMainPage();">
+              <md-icon class="material-icons">delete</md-icon>
+              {{ main.currentMatch().isOver() ? 'MATCH_DELETE' : 'MATCH_RESIGN_AND_DELETE' | translate }}
+            </md-button>
+          </md-menu-item>
+        </md-menu-content>
+      </md-menu>
     </div>
   </md-toolbar>
-  
-  </md-content>
 </div>
 </script>
 
 
 <script type="text/ng-template" id="html-templates/inviteFriendsPage.html">
-<div class="friends-invite">
-  <!-- Header with optional search. -->
-	<div class="header">
-    <div class="header-inner" ng-if="!main.fb().showNameFilter()">
-      <button id="test_invite_friends_goto_main" class="button back-button" ng-click="main.changePage('/main')"
-              style="height: 40px; width: 40px; margin-left: -5px; padding: 5px; font-size: 15px">
-        <span class="back-button-icon"></span>
-      </button>
-   		<div class="title">{{ 'FB_FRIENDS_TITLE' | translate }}</div>
-	  	<a id="test_start_name_filter" class="search-button"
-         href="javascript:void(0)"
-         ng-click="main.fb().toggleNameFilter()"></a>
+<div flex layout="column" tabIndex="-1" class="full_screen">
+  <md-toolbar md-scroll-shrink>
+    <div class="md-toolbar-tools">
+      <md-button
+          id="test_invite_friends_goto_main"
+          ng-click="main.changePage('/main')" class="md-icon-button"
+          aria-label="{{ 'TO_MAIN_MENU' | translate }}">
+        <md-icon class="material-icons">{{main.l10n().isRtl() ? 'arrow_forward' : 'arrow_back'}}</md-icon>
+      </md-button>
+      <h2>{{ 'FB_FRIENDS_TITLE' | translate }}</h2>
     </div>
-    <div class="header-inner" ng-if="main.fb().showNameFilter()">
-      <input class="filter-input" ng-model="main.model().facebookFriendsFilter">
-      <a id="test_cancel_name_filter" class="cancel-button" ng-click="main.fb().toggleNameFilter()" title="Cancel">{{ 'FB_FRIENDS_FILTER_CANCEL' | translate }}</a>
+  </md-toolbar>
+  <md-content flex class="overflow-y-scroll">
+    <md-list ng-if="main.fb().friends().length > 0">
+      <md-list-item 
+          ng-click="main.fb().startMatchWith([friend])" 
+          ng-repeat="friend in main.fb().friends() | filter:main.model().facebookFriendsFilter">
+        <img ng-src="{{friend.getAvatarImage()}}"
+             alt="Friend avatar" 
+             class="md-avatar">
+        <p>{{friend.getDisplayName()}}</p>
+        <span flex></span>
+        <md-icon class="material-icons">person_add</md-icon>
+      </md-list-item>
+    </md-list>
+    <div id="test_no_friends_msg" class="no-friends-msg" ng-if="main.fb().friends().length == 0 && main.fb().isLoggedIn()">
+      {{ 'FB_FRIENDS_DID_NOT_INSTALL_APP' | translate }}
     </div>
-	</div>
-  <!-- Friends list. can be filtered by using the search in the header. -->
-	<ul class="friends-list" ng-if="main.fb().friends().length > 0">
-		<li class="friend" ng-repeat="friend in main.fb().friends() | filter:main.model().facebookFriendsFilter">
-				<img alt="Friend avatar" ng-src="{{friend.getAvatarImage()}}">
-				<div class="name">{{friend.getDisplayName()}}</div>
-        <span class="invite-button" ng-click="main.fb().startMatchWith([friend])">{{ 'FB_FRIENDS_ACTION_INVITE' | translate }}</span>
-		</li>
-	</ul>
-	<div id="test_invite_friends_fb_login" ng-if="main.fb().showLoginButton()" ng-click="main.fb().login()" class="facebook-login">
-		{{ 'MAIN_LOG_IN_WITH_FACEBOOK' | translate }}
-	</div>
-	<div id="test_no_friends_msg" class="no-friends-msg" ng-if="main.fb().friends().length == 0 && main.fb().isLoggedIn()">
-		{{ 'FB_FRIENDS_DID_NOT_INSTALL_APP' | translate }}
-	</div>
+  </md-content>
 </div>
 </script>
 
+<script type="text/ng-template" id="html-templates/dismissSwipedMatchDialog.html">
+<md-dialog aria-label="Are you sure you want to resign?">
+  <md-dialog-content>
+    <div layout="row" layout-align="left center" layout-margin style="margin:20px">
+      {{swipedMatchDialogTitle()}}
+      <img 
+          ng-repeat="player in getSwipedMatch().getPlayers({limit:1, excludeMe: true})"
+          ng-src="{{player.getAvatarImage()}}"
+          alt="{{player.getDisplayName()}}" 
+          class="avatar">
+    </div>
+  </md-dialog-content>
+  <md-dialog-actions>
+    <md-button ng-click="closeSwipedMatchDialog()">
+      <md-icon class="material-icons">close</md-icon>
+      {{ 'MODAL_BUTTON_CLOSE' | translate }}
+    </md-button>
+    <md-button class="md-warn" ng-click="dismissSwipedMatch()">
+      <md-icon class="material-icons">delete</md-icon>
+      {{ 'MATCH_RESIGN_AND_DELETE' | translate }}
+    </md-button>
+  </md-dialog-actions>
+</md-dialog>
+</script>
+
+<script type="text/ng-template" id="html-templates/gameOverDialog.html">
+<md-dialog aria-label="Game over dialog">
+  <md-dialog-content style="margin:20px;">
+    <h3 id="test_game_over_match_title">{{ 'MODAL_TITLE_MATCH_OVER' | translate }}</h3>
+    <div id="test_game_over_match_status">
+      {{main.currentMatch().getMatchStatusText({showDisplayName:true})}}
+    </div>
+  </md-dialog-content>
+  <md-dialog-actions>
+    <md-button id="test_game_over_rematch" ng-click="main.closeGameOverModal(); main.currentMatch().startNewMatch()"
+        ng-if="main.currentMatch().canStartNewMatch()">
+      <md-icon class="material-icons">replay</md-icon>
+      {{ main.currentMatch().isSinglePlayer() ? 'MATCH_NEW_GAME' : 'REMATCH' | translate }}
+    </md-button>
+    <md-button id="test_share_invite_link" class="md-primary"
+        ng-click="main.closeGameOverModal(); main.shareInviteLink({takePrintscreen: true, translationIdPrefix: main.didWinMultiplayerMatch() ? 'SHARE_INTENT_WON_GAME' : 'SHARE_INTENT_GAME_INVITE'})">
+      <md-icon class="material-icons">share</md-icon>
+      {{ 'SHARE' | translate }}
+    </md-button>
+  </md-dialog-actions>
+</md-dialog>
+</script>
+
+<script type="text/ng-template" id="html-templates/playerInfoBottomSheet.html">
+<md-bottom-sheet class="md-list md-has-header">
+  <md-subheader>
+    <div layout="row" layout-align="left center">
+      <img id="test_player_info_img" alt="Player avatar" class="avatar notification-avatar"
+                    width="40" height="40"
+                    ng-src="{{playerInBottomSheet().getAvatarImage()}}"
+                    ng-click="$mdBottomSheet.hide()">
+      <span id="test_player_info_name">{{playerInBottomSheet().getDisplayName()}}</span>
+    </div>
+  </md-subheader>
+  <md-menu-item>
+    <md-button class="md-list-item-content"
+        id="test_player_info_invite_to_match" 
+        ng-click="$mdBottomSheet.hide(); main.startMatchWith([playerInBottomSheet()])">
+      <md-icon class="material-icons">replay</md-icon>
+      <span class="md-inline-list-icon-label">{{ 'MODAL_BUTTON_INVITE_TO_NEW_MATCH' | translate }}</span>
+    </md-button>
+  </md-menu-item>
+  <md-menu-item style="padding-left: 16px;padding-right: 16px; padding-top: 20px;">
+    <md-input-container>
+      <label>{{'CHAT_MESSAGE_LABEL' | translate }}</label>
+      <input 
+          ng-model="main.model().chatMessage"
+          ng-keyup="$event.keyCode == 13 && sendChatAndCloseBottomSheet()"
+          maxlength="140">
+      <md-icon class="material-icons"
+          ng-class="main.l10n().isRtl() ? 'flip_rtl' : ''"
+          aria-label="{{ 'MODAL_BUTTON_SEND_CHAT' | translate }}"
+          id="test_player_info_send_chat"
+          ng-click="sendChatAndCloseBottomSheet()">
+        send</md-icon>
+    </md-input-container>
+  </md-menu-item>
+  <md-menu-item>
+    <md-button class="md-list-item-content"
+        id="test_player_info_toggle_blocking"
+        ng-click="main.toggleBlocking(playerInBottomSheet())">
+      <md-icon class="material-icons">{{ main.isBlocking(playerInBottomSheet()) ? 'undo' : 'block' }}</md-icon>
+      <span class="md-inline-list-icon-label">{{ main.isBlocking(playerInBottomSheet()) ? 'MODAL_BUTTON_UNBLOCK' : 'MODAL_BUTTON_BLOCK' | translate }}</span>
+    </md-button>
+  </md-menu-item>
+</md-bottom-sheet>
+</script>
 
 </head>
-<body ng-controller="SideNavCtrl" 
-      ng-class="{'backgroundColor': main.isFinishedLoading()}" ng-cloak layout="row">
+<body>
 
 <img ng-if="!main.isFinishedLoading()"
   style="position: absolute; display:block; left: 0; top: 0; right: 0; bottom: 0; margin: auto;"
   src="imgs/animatedEllipse.gif">
 
-
-
-<div ng-if="main.isFinishedLoading()" class="max_height" layout="column" tabIndex="-1" role="main" flex>
-
-  <md-sidenav 
-        ng-class="main.l10n().isRtl() ? 'md-sidenav-right' : 'md-sidenav-left'"
-        class="md-whiteframe-z2" md-theme="altTheme"
-        md-component-id="left" md-is-locked-open="$mdMedia('gt-md')">
-  
-    <md-content layout-padding role="navigation" flex layout="column" layout-align="center none">
-      
-      <a ng-if="main.isFinishedLoading()" class="md-raised md-button md-ink-ripple" href="#/">
-        <div>
-          <img ng-src="{{main.me().getAvatarImage()}}" class="avatar" alt="" style="max-height: 150px;">  
-
-          <div>{{main.game().name()}}</div>  
-        </div>
-      </a>
-
-      <md-button id="test_start_rematch" class="md-warn md-raised md-button md-ink-ripple"
-          ng-click="closeSidenav(); main.currentMatch().startNewMatch()"
-          ng-if="main.currentMatch() && main.currentMatch().canRematch() && main.isInPage('/playGame/')">
-        <small class="md-caption"> {{ main.translateRematch() }}</small>
-      </md-button>
-
-      <md-button id="test_start_multiplayer_auto_match" class="md-warn md-hue-2 md-raised md-button md-ink-ripple"
-         ng-click="closeSidenav(); main.newMultiplayerAutoMatch()">
-        <small class="md-caption"> {{ 'MAIN_NEW_AUTO_MATCH_TITLE' | translate }}</small>
-      </md-button>
-
-      <md-button id="test_goto_invite_friends" class="md-warn md-raised md-button md-ink-ripple"
-          ng-click="closeSidenav(); main.changePage('/inviteFriends')">
-        <small class="md-caption"> {{ 'MAIN_INVITE_FRIENDS_TITLE' | translate }}</small>
-      </md-button>
-      <!-- I set image&message&subject to false because otherwise sharing via FB fails on Android. -->
-      <md-button id="test_share_invite_link_no_printscreen" class="md-warn md-hue-2 md-raised md-button md-ink-ripple"
-          ng-click="closeSidenav(); main.shareInviteLink({takePrintscreen: false, link: true, image: false, message: false, subject: false})">
-        <small class="md-caption"> {{ 'MAIN_SHARE_INVITE_LINK_TITLE' | translate }}</small>
-      </md-button>
-      <md-button id="test_start_practice" class="md-warn md-raised md-button md-ink-ripple"
-          ng-click="closeSidenav(); main.newSinglePlayer('practice')" ng-if="!main.game().isHidePracticeOption()">
-        <small class="md-caption"> {{ 'MAIN_PRACTICE_TITLE' | translate }}</small>
-      </md-button>
-      <md-button id="test_start_pass_and_play" class="md-warn md-hue-2 md-raised md-button md-ink-ripple"
-          ng-click="closeSidenav(); main.newSinglePlayer('passAndPlay')" 
-          ng-if="!main.game().isHidePassAndPlayOption()">
-        <small class="md-caption"> {{ 'MAIN_PASS_AND_PLAY_TITLE' | translate }}</small>
-      </md-button>
-
-      <md-button id="test_close_new_match_modal" 
-          md-theme="custom" class="md-accent md-raised md-button md-ink-ripple"
-         ng-click="closeSidenav()">
-        <small class="md-caption"> {{ 'MODAL_BUTTON_CLOSE' | translate }}</small>
-      </md-button>
-
-      <span flex></span>
-
-      <div>Made by Pranav and Ismail</div>
-    </md-content>
-  </md-sidenav>
-
-  <md-sidenav class="md-sidenav-right md-whiteframe-z2" md-theme="altTheme"
-          md-component-id="right" md-is-locked-open="$mdMedia('gt-md')">
-      
-    <md-content layout-padding role="navigation" flex layout="column" layout-align="center none">
-      
-      <md-button id="test_extra_match_options_goto_main" class="md-warn md-raised md-button md-ink-ripple"
-          ng-click="closeSidenav(); main.changePage('/main')">
-        <small class="md-caption">{{ 'TO_MAIN_MENU' | translate }}</small>
-      </md-button>
-      <md-button id="test_share_invite_link_with_printscreen" class="md-warn md-hue-2 md-raised md-button md-ink-ripple"
-          ng-click="closeSidenav(); main.shareInviteLink({takePrintscreen: true})">
-        <small class="md-caption">{{ 'MATCH_SHARE_PRINTSCREEN' | translate }}</small>
-      </md-button>
-      <md-button id="test_dismiss_match" class="md-warn md-raised md-button md-ink-ripple"
-          ng-click="closeSidenav(); main.currentMatch().dismissAndLoadNextMatchOrMainPage();"
-          ng-if="!main.currentMatch().isSinglePlayer()">
-        <small class="md-caption">{{ main.currentMatch().isOver() ? 'MATCH_DELETE' : 'MATCH_RESIGN_AND_DELETE' | translate }}</small>
-      </md-button>
-      <md-button id="test_load_next" class="md-warn md-hue-2 md-raised md-button md-ink-ripple"
-          ng-click="closeSidenav(); main.currentMatch().getNextMatch().load();"
-          ng-if="main.currentMatch().getNextMatch()">
-        <small class="md-caption">{{ 'MATCH_LOAD_NEXT' | translate }}</small>
-      </md-button>
-
-      <md-button id="test_close_new_match_modal" 
-          md-theme="custom" class="md-accent md-raised md-button md-ink-ripple"
-         ng-click="closeSidenav()">
-        <small class="md-caption"> {{ 'MODAL_BUTTON_CLOSE' | translate }}</small>
-      </md-button>
-
-      <span flex></span>
-    </md-content>
-  </md-sidenav>
-
-  <md-content md-theme="custom2" md-scroll-y layout="column" flex>
-    <div ng-view class="max_height"></div>
-  </md-content>
+<div ng-if="main.isFinishedLoading()" class="full_screen" ng-cloak>
+  <div ng-view class="full_screen"></div>
 
   <div ng-show="main.showGameIframe()"
-    ng-class="main.shouldShowTopBar() ? 'opened_game_header' : 'closed_game_header'"
+    ng-class="main.shouldShowTopBar() ? 'game_iframe_with_opened_game_header' : 'game_iframe_with_closed_game_header'"
     class="game_container"
     ng-bind-html="main.game().getIframeHtml()"></div>
 
-  <md-button ng-show="main.showGameIframe()" hide show-gt-xs
-      id="test_open_new_match_modal" class="md-fab new-match-fab md-fab-bottom-right" 
-      aria-label="FAB" ng-click="toggleRight()">
-
-    <md-icon style="color: white;">
-      <i class="material-icons">apps</i>
-    </md-icon>
-    
-  </md-button>
-  <!-- Extra match options Modal -->
-  <!-- It can't be inside a template, because then hiding the modal won't be animated, leading to a bug in ngMaterial, see https://github.com/angular/material/issues/7978 -->
-  <div ng-controller="ModalCtrl as modal" ng-init="modal.init('extraMatchOptionsModal')">
-    <div class="overlayModal" ng-click="modal.backdrop($event)" ng-if="modal.isShowing()" aria-hidden="true">
-      <div class="modal-dialog">
-        <div id="test_extra_match_options_goto_main" class="menu-item" ng-click="main.changePage('/main')">
-          <div class="text">{{ 'TO_MAIN_MENU' | translate }}</div>
+  <div class="notifications-container">
+    <div class="notification md-whiteframe-z4" ng-repeat="notification in main.notifications()">
+      <div class="notification-content">
+        <img alt="Player avatar" class="avatar notification-avatar"
+            ng-if="notification.player()" width="40" height="40"
+            ng-click="showPlayerBottomSheet(notification.player(), notification.match())"
+            ng-src="{{notification.player().getAvatarImage()}}">
+        <div ng-click="notification.onClick()">
+          <div class="notification-title" ng-if="notification.title()">{{notification.title()}}</div>
+          <div class="notification-body" ng-if="notification.message()">{{notification.message()}}</div>
         </div>
-        <div id="test_share_invite_link_with_printscreen" class="menu-item" ng-click="modal.hide(); main.shareInviteLink({takePrintscreen: true})">
-          <div class="text">{{ 'MATCH_SHARE_PRINTSCREEN' | translate }}</div>
-        </div>
-        <div id="test_dismiss_match" class="menu-item" ng-click="main.currentMatch().dismissAndLoadNextMatchOrMainPage();"
-            ng-if="!main.currentMatch().isSinglePlayer()">
-          <div class="text">{{ main.currentMatch().isOver() ? 'MATCH_DELETE' : 'MATCH_RESIGN_AND_DELETE' | translate }}</div>
-        </div>
-        <div id="test_load_next" class="menu-item" ng-click="main.currentMatch().getNextMatch().load()"
-            ng-if="main.currentMatch().getNextMatch()">
-          <div class="text">{{ 'MATCH_LOAD_NEXT' | translate }}</div>
-        </div>
-        <button id="test_close_extra_match_options_modal" type="button" class="btn btn-default" ng-click="modal.hide()">
-          {{ 'MODAL_BUTTON_CLOSE' | translate }}
-        </button>
       </div>
-
-      <div class="new-match-fab">
-        <md-button id="test_extra_match_options_open_new_match_modal" class="md-fab new-match-fab" aria-label="FAB"
-            ng-click="main.showModal('newMatchModal')">
-          <md-tooltip md-direction="left">
-            {{ 'MAIN_NEW_MATCH_GROUP_TITLE' | translate }}
-          </md-tooltip>
-          <span style="font-size: 28px;">+</span>
-        </md-button>
-      </div>
+      <md-icon
+          class="material-icons big-material-icon"
+          ng-click="notification.onClose()">close</md-icon>
     </div>
   </div>
-  
-  <!-- Starting a new match Modal ; must be after extra match options modal since it can be opened from it. -->
-  <div ng-controller="ModalCtrl as modal" ng-init="modal.init('newMatchModal')">
-    <div class="overlayModal" ng-click="modal.backdrop($event)" ng-if="modal.isShowing()" aria-hidden="true">
-      <div class="modal-dialog">
-        <div id="test_start_rematch" class="menu-item" ng-click="main.currentMatch().startNewMatch()"
-            ng-if="main.currentMatch() && main.currentMatch().canRematch() && main.isInPage('/playGame/')">
-          <div class="text">{{ main.translateRematch() }}</div>
-        </div>
-        <div id="test_start_multiplayer_auto_match" class="menu-item" ng-click="main.newMultiplayerAutoMatch()">
-          <div class="text">{{ 'MAIN_NEW_AUTO_MATCH_TITLE' | translate }}</div>
-        </div>
-        <div id="test_goto_invite_friends" class="menu-item" ng-click="main.changePage('/inviteFriends')">
-          <div class="text">{{ 'MAIN_INVITE_FRIENDS_TITLE' | translate }}</div>
-        </div>
-        <!-- I set image&message&subject to false because otherwise sharing via FB fails on Android. -->
-        <div id="test_share_invite_link_no_printscreen" class="menu-item" ng-click="main.shareInviteLink({takePrintscreen: false, link: true, image: false, message: false, subject: false})">
-          <div class="text">{{ 'MAIN_SHARE_INVITE_LINK_TITLE' | translate }}</div>
-        </div>
-        <div id="test_start_practice" class="menu-item" ng-click="main.newSinglePlayer('practice')" ng-if="!main.game().isHidePracticeOption()">
-          <div class="text">{{ 'MAIN_PRACTICE_TITLE' | translate }}</div>
-        </div>
-        <div id="test_start_pass_and_play" class="menu-item" ng-click="main.newSinglePlayer('passAndPlay')" ng-if="!main.game().isHidePassAndPlayOption()">
-          <div class="text">{{ 'MAIN_PASS_AND_PLAY_TITLE' | translate }}</div>
-        </div>
-        <button id="test_close_new_match_modal" type="button" class="btn btn-default" ng-click="modal.hide()">
-          {{ 'MODAL_BUTTON_CLOSE' | translate }}
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Other player (not me) info Modal -->
-  <div ng-controller="ModalCtrl as modal" ng-init="modal.init('playerInfoModal')">
-    <div class="overlayModal" ng-click="modal.backdrop($event)" ng-if="modal.isShowing()" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="notification-content">
-          <table>
-            <td>
-              <img id="test_player_info_img" alt="Player avatar" class="avatar notification-avatar"
-                  width="50" height="50"
-                  ng-src="{{main.playerInPlayerInfoModal().getAvatarImage()}}">
-            </td>
-            <td>
-              <div id="test_player_info_name">{{main.playerInPlayerInfoModal().getDisplayName()}}</div>
-            </td>
-          </table>
-        </div>
-
-        <div id="test_player_info_chat_sent" class="form-group" ng-if="main.didSendChat() && !main.playerInPlayerInfoModal().isUnknown()">
-          {{ 'CHAT_SENT' | translate }}
-        </div>
-        <div class="form-group" ng-if="!main.didSendChat() && !main.playerInPlayerInfoModal().isUnknown()">
-          <label>
-            <input type="text" class="form-control auto_width" ng-model="main.model().chatMessage">
-          </label>
-          <button id="test_player_info_send_chat" class="btn" ng-click="main.sendChat(main.model().chatMessage, main.playerInPlayerInfoModal(), main.matchInPlayerInfoModal())">
-            {{ 'MODAL_BUTTON_SEND_CHAT' | translate }}
-          </button>
-        </div>
-        <div class="form-group" ng-if="!main.playerInPlayerInfoModal().isUnknown()">
-          <button id="test_player_info_toggle_blocking" class="btn smallertext"
-              ng-click="main.toggleBlocking(main.playerInPlayerInfoModal())">
-            {{ main.isBlocking(main.playerInPlayerInfoModal()) ? 'MODAL_BUTTON_UNBLOCK' : 'MODAL_BUTTON_BLOCK' | translate }}
-          </button>
-        </div>
-
-        <button id="test_close_player_info" type="button" class="btn" ng-click="modal.hide()">
-          {{ 'MODAL_BUTTON_CLOSE' | translate }}
-        </button>
-        <button id="test_player_info_invite_to_match" class="btn" ng-if="!main.playerInPlayerInfoModal().isUnknown()"
-            ng-click="main.startMatchWith([main.playerInPlayerInfoModal()])">
-          {{ 'MODAL_BUTTON_INVITE_TO_NEW_MATCH' | translate }}
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- My info Modal -->
-  <div ng-controller="ModalCtrl as modal" ng-init="modal.init('myInfoModal')">
-    <div class="overlayModal" ng-click="modal.backdrop($event)" ng-if="modal.isShowing()" aria-hidden="true">
-      <div class="modal-dialog">
-        <form role="form" ng-submit="main.saveMyInfo()">
-          <h4 id="test_my_info_title">{{ 'MODAL_TITLE_USER_INFO' | translate }} LOCATIONINFO</h4>
-          <!-- First choose language! Then FB login. Also, after logging in to FB, we close myInfoModal. -->
-          <div class="bottom-bar">
-            <select class="button" ng-if="main.l10n().getSupportedLanguages().length > 1"
-                ng-model="main.model().currentLanguage" ng-change="main.l10n().changeLanguage(main.model().currentLanguage)"
-                ng-options="language.code as language.name for language in main.l10n().getSupportedLanguages()"></select>
-            <div id="test_open_feedback_modal" class="button" ng-click="main.showModal('feedbackModal')">{{ 'MAIN_FEEDBACK_AND_BUGS_TITLE' | translate }}</div>
-          </div>
-          <div class="form-group">
-            <div id="test_my_info_fb_login" ng-if="main.fb().showLoginButton()" ng-click="main.fb().login()" class="facebook-login">
-              {{ 'MAIN_LOG_IN_WITH_FACEBOOK' | translate }}
-            </div>
-          </div>
-          <!-- newDisplayName and newUserName will only be persisted after clicking save. -->
-          <div class="form-group" ng-if="!main.fb().isLoggedIn()">
-            <label>
-              {{ 'MODAL_USER_INFO_NAME' | translate }}:
-              <input type="text" class="form-control" ng-model="main.model().newDisplayName" maxlength="30" required>
-            </label>
-          </div>
-          <div class="form-group">
-            <label>
-              {{ 'MODAL_USER_INFO_USERNAME' | translate }}:
-              <input type="text" class="form-control" ng-model="main.model().newUserName" maxlength="30" required>
-            </label>
-            <div id="test_my_info_username_was_taken" ng-if="main.newUserNameWasTaken()">{{ 'MODAL_USER_INFO_USERNAME_WAS_TAKEN' | translate }}</div>
-          </div>
-          <button id="test_my_info_submit" type="submit" class="btn btn-primary">
-            {{ 'MODAL_BUTTON_SAVE' | translate }}
-          </button>
-          <button id="test_my_info_cancel" type="button" class="btn" ng-click="modal.hide()">
-            {{ 'MODAL_BUTTON_CLOSE' | translate }}
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Feedback Modal -->
-  <div ng-controller="ModalCtrl as modal" ng-init="modal.init('feedbackModal')">
-    <div class="overlayModal" ng-click="modal.backdrop($event)" ng-if="modal.isShowing()" aria-hidden="true">
-      <div class="modal-dialog">
-        <h4>{{ 'MODAL_TITLE_FEEDBACK_AND_BUGS' | translate }}</h4>
-        <textarea ng-model="main.model().feedbackText" rows="5"
-            placeholder="{{ 'MODAL_FEEDBACK_AND_BUGS_PLACEHOLDER_TEXT' | translate }}" required></textarea>
-        <button type="button" class="btn btn-primary" ng-click="main.sendFeedback(main.model().feedbackText)">{{ 'MODAL_BUTTON_SEND_FEEDBACK_AND_BUGS' | translate }}</button>
-        <button id="test_close_feedback_modal" type="button" class="btn btn-default" ng-click="modal.hide()">
-          {{ 'MODAL_BUTTON_CLOSE' | translate }}
-        </button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Game over Modal (prettier than notification) -->
-  <!-- It can't be inside a template, because then hiding the modal won't be animated, leading to a bug in ngMaterial, see https://github.com/angular/material/issues/7978 -->
-  <div ng-controller="ModalCtrl as modal" ng-init="modal.init('gameOverModal')">
-    <div class="overlayModal" ng-click="modal.backdrop($event)" ng-if="modal.isShowing()" aria-hidden="true">
-      <div class="modal-dialog">
-        <h4 id="test_game_over_match_title">{{ 'MODAL_TITLE_MATCH_OVER' | translate }}</h4>
-        <div id="test_game_over_match_status">
-          {{main.currentMatch().getMatchStatusText({showDisplayName:true})}}
-        </div>
-        <button id="test_share_invite_link_after_victory" type="button" class="btn btn-primary"
-            ng-if="main.didWinMultiplayerMatch()"
-            ng-click="main.closeGameOverModal(); main.shareInviteLink({takePrintscreen: true, translationIdPrefix: 'SHARE_INTENT_WON_GAME'})">
-          {{ 'SHARE_INTENT_WON_GAME_TAKE_SCREENSHOT' | translate }}
-        </button>
-        <div id="test_game_over_rematch" class="menu-item" ng-click="main.currentMatch().startNewMatch()"
-            ng-if="main.currentMatch().canRematch()">
-          <div class="text">
-            {{ main.translateRematch() }}
-          </div>
-        </div>
-        <button id="test_close_game_over_modal" type="button" class="btn" ng-click="main.closeGameOverModal()">
-          {{ 'MODAL_BUTTON_CLOSE' | translate }}
-        </button>
-      </div>
-    </div>
-  </div>
-
 </div>
 
-<script crossorigin="anonymous" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
+<script crossorigin="anonymous" src="http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular.min.js"></script>
 
-<script crossorigin="anonymous" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-route.min.js"></script>
+<script crossorigin="anonymous" src="http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular-route.min.js"></script>
 
 <!-- Angular Material dependencies & libraries -->
-<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js"></script>
+<script crossorigin="anonymous" src="http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular-animate.min.js"></script>
+<script crossorigin="anonymous" src="http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular-aria.min.js"></script>
+<!-- see what's the latest version here: https://cdnjs.com/libraries/angular-material/ --> 
+<script crossorigin="anonymous" src="http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular-material.min.js"></script>
   
+
+<script src="ts/angular-material.js"></script>
 <script src="ts/app-l10n.js"></script>
 <script crossorigin="anonymous" src="http://www.multiplayer-gaming.com/api/loader.min.js?app=v201"></script>
-<style type="text/css">
-  md-toast .md-toast-content{
-    min-height: 75px !important;
-  }
-</style>
-<script type="text/ng-template" id="notification1.tmpl.html">
-  <md-toast>
-    
-    <img alt="Player avatar" class="avatar notification-avatar"
-        width="50" height="50"
-        ng-if="notification.player()"
-        ng-click="main.showPlayerInfoModal(notification.player(), notification.match())"
-        ng-src="{{notification.player().getAvatarImage()}}">
-    
-    <div class="notification-content" class="md-toast-text" flex>
-      
-      <div ng-click="notification.onClick()">
-        <div class="notification-title" ng-if="notification.title()">{{notification.title()}}</div>
-        <div class="notification-body" ng-if="notification.message()">{{notification.message()}}</div>
-      </div>
-    </div>
-
-    <md-button class="md-icon-button" 
-      ng-click="closeToast()">
-      <md-icon aria-label="Close dialog">
-        <i class="material-icons" style="color: white;">clear</i>
-      </md-icon>
-    </md-button>
-    
-  </md-toast>
-</script>
-<!-- Other Player Info -->
-<script type="text/ng-template" id="otherPlayerInfo.tmpl.html">
-  <md-dialog aria-label="{{ 'MODAL_TITLE_USER_INFO' | translate }}"  ng-cloak>
-    <form>
-      <md-toolbar>
-        <div class="md-toolbar-tools">
-          <h2>{{ 'MODAL_TITLE_USER_INFO' | translate }}</h2>
-          <span flex></span>
-          <md-button class="md-icon-button" ng-click="cancel()">
-            <md-icon aria-label="Close dialog">
-              <i class="material-icons">clear</i>
-            </md-icon>
-          </md-button>
-        </div>
-      </md-toolbar>
-      <md-dialog-content>
-        <div class="md-dialog-content">
-          <md-input-container class="md-icon-float md-block">
-            <md-icon>
-              <i class="material-icons">language</i>
-            </md-icon>
-            <md-select ng-model="selectedItem" md-selected-text="getSelectedText()">
-              <md-optgroup>
-                <md-option ng-value="item" ng-repeat="item in items">{{item.name}}</md-option>
-              </md-optgroup>
-            </md-select>
-          </md-input-container>
-          <md-content>
-            <md-input-container class="md-icon-float md-block">
-              <!-- Use floating label instead of placeholder -->
-              <label>{{ 'MODAL_USER_INFO_NAME' | translate }}</label>
-              <md-icon>
-                <i class="material-icons">perm_identity</i>
-              </md-icon>
-              <input ng-model="user.newDisplayName" type="text">
-            </md-input-container>
-            <md-input-container md-no-float class="md-block">
-              <label>{{ 'MODAL_USER_INFO_USERNAME' | translate }}</label>
-              <md-icon>
-                <i class="material-icons">portrait</i>
-              </md-icon>
-              <input ng-model="user.newUserName" type="text">
-            </md-input-container>
-          </md-content>
-        </div>
-      </md-dialog-content>
-      <md-dialog-actions layout="row">
-        <md-button ng-click="cancel()" md-theme="custom" 
-          class="md-accent md-raised md-button md-ink-ripple" style="margin-right:20px;">
-          Cancel
-        </md-button>
-        <span flex></span>
-        
-        <md-button ng-click="answer()" class="md-warn md-raised md-button" style="margin-right:20px;">
-          Save
-        </md-button>
-      </md-dialog-actions>
-    </form>
-  </md-dialog>
-</script>
-
-<script type="text/ng-template" id="myInfo.tmpl.html">
-   <md-dialog aria-label="{{ 'MODAL_TITLE_USER_INFO' | translate }}"  ng-cloak>
-    <form>
-      <md-toolbar>
-        <div class="md-toolbar-tools">
-          <h2>{{ 'MODAL_TITLE_USER_INFO' | translate }}</h2>
-          <span flex></span>
-          <md-button class="md-icon-button" ng-click="cancel()">
-            <md-icon aria-label="Close dialog">
-              <i class="material-icons">clear</i>
-            </md-icon>
-          </md-button>
-        </div>
-      </md-toolbar>
-      <md-dialog-content>
-        <div class="md-dialog-content">
-          <md-input-container class="md-icon-float md-block">
-            <md-icon>
-              <i class="material-icons">language</i>
-            </md-icon>
-            <md-select ng-model="selectedItem" md-selected-text="getSelectedText()">
-              <md-optgroup>
-                <md-option ng-value="item" ng-repeat="item in items">{{item.name}}</md-option>
-              </md-optgroup>
-            </md-select>
-          </md-input-container>
-          <md-content>
-            <md-input-container class="md-icon-float md-block">
-              <!-- Use floating label instead of placeholder -->
-              <label>{{ 'MODAL_USER_INFO_NAME' | translate }}</label>
-              <md-icon>
-                <i class="material-icons">perm_identity</i>
-              </md-icon>
-              <input ng-model="user.newDisplayName" type="text">
-            </md-input-container>
-            <md-input-container md-no-float class="md-block">
-              <label>{{ 'MODAL_USER_INFO_USERNAME' | translate }}</label>
-              <md-icon>
-                <i class="material-icons">portrait</i>
-              </md-icon>
-              <input ng-model="user.newUserName" type="text">
-            </md-input-container>
-          </md-content>
-        </div>
-      </md-dialog-content>
-      <md-dialog-actions layout="row">
-        <md-button ng-click="cancel()" md-theme="custom" 
-          class="md-accent md-raised md-button md-ink-ripple" style="margin-right:20px;">
-          Cancel
-        </md-button>
-        <span flex></span>
-        
-        <md-button ng-click="answer()" class="md-warn md-raised md-button" style="margin-right:20px;">
-          Save
-        </md-button>
-      </md-dialog-actions>
-    </form>
-  </md-dialog>
-</script>
 
 <script>
-function gamingPlatformInitFinished() {
+
+    angular.module('whateverNameApp', ["gamingPlatformModule", 'ngMaterial'])
+    .config(['$mdThemingProvider', '$mdIconProvider', 
+      function ($mdThemingProvider, $mdIconProvider) {
+        
+        
+        $mdThemingProvider
+            .theme('altTheme')
+            .primaryPalette('purple')
+            .backgroundPalette('purple',{
+              'hue-1': '50'
+            });
+        $mdThemingProvider
+            .theme('default')
+            .primaryPalette('red')
+            .accentPalette('deep-orange')
+        $mdThemingProvider.theme('custom')
+        .primaryPalette('grey')
+        .accentPalette('deep-purple')
+        .warnPalette('green')
+        //create yr own palette 
+        $mdThemingProvider.definePalette('amazingPaletteName', {
+            '50': 'ffebee',
+            '100': 'ffcdd2',
+            '200': 'ef9a9a',
+            '300': 'e57373',
+            '400': 'ef5350',
+            '500': 'f44336',
+            '600': 'e53935',
+            '700': 'd32f2f',
+            '800': 'c62828',
+            '900': 'b71c1c',
+            'A100': 'ff8a80',
+            'A200': 'ff5252',
+            'A400': 'ff1744',
+            'A700': 'd50000',
+            'contrastDefaultColor': 'light',    // whether, by default, text         (contrast)
+                                        // on this palette should be dark or light
+            'contrastDarkColors': ['50', '100', //hues which contrast should be 'dark' by default
+             '200', '300', '400', 'A100'],
+            'contrastLightColors': undefined    // could also specify this if default was 'dark'
+        });
   
-  function ToastCtrl($scope, $mdToast, main, notification) {
-
-    $scope.main = main;
-    $scope.notification = notification;
-
-    $scope.closeToast = function() {
-      
-      $mdToast
-        .hide()
-        .then(function() {
-          isDlgOpen = false;
-        });
-    };
-  }
-
-  function DialogController($scope, $mdDialog, main) {
-
-    $scope.main   = main;
-    $scope.user   = {};
-    $scope.user.newDisplayName   = $scope.main.me().displayName;
-    $scope.user.newUserName      = "Something";
-
-    
-    $scope.supportedLanguages = $scope.main.l10n().getSupportedLanguages();
-
-    $scope.items = []; 
-    $scope.currentLanguage = undefined;
-
-    angular.forEach($scope.supportedLanguages, function(value, key) {
-      if($scope.main.model().currentLanguage == value.code){
-        $scope.currentLanguage = value;
-      }
-      this.push(value);
-    }, $scope.items);
-
-
-    $scope.selectedItem;
-
-    $scope.getSelectedText = function() {
-      if ($scope.selectedItem !== undefined) {
-        $scope.main.l10n().changeLanguage($scope.selectedItem.code);
-
-        return $scope.selectedItem.name;
-      } else {
-        return $scope.currentLanguage.name;
-      }
-    };
-
-    $scope.hide = function() {
-      $mdDialog.hide();
-    };
-    $scope.cancel = function() {
-      $mdDialog.cancel();
-    };
-    $scope.answer = function() {
-      $mdDialog.hide($scope.user);
-    };
-  }
-
-  function SideNavCtrl($scope, $mdSidenav, $timeout, $mdDialog, $mdMedia, $mdToast) {
-    
-    $scope.toggleLeft = buildDelayedToggler('left');
-    
-    $scope.toggleRight = buildDelayedToggler('right');
-
-    $scope.$watch(function() { 
-        return $scope.main.notifications().length; 
-    }, function(value) {
-        // Do something every time $scope.main.notifications.length > 0 changes
-        
-        if(value != 0){
-
-          var notifications = $scope.main.notifications();
-          var notification = notifications[notifications.length-1];
-          console.log(notification);
-
-          $mdToast.show({
-            hideDelay   : 0,
-            position    : 'top',
-            controller  : ToastCtrl,
-            templateUrl : 'notification1.tmpl.html',
-            locals: { main: $scope.main, notification: notification}
-          });
-        }
-    });
-
-    $scope.showAdvanced = function(ev) {
-
-      var useFullScreen = ($mdMedia('sm') || $mdMedia('xs'))  && $scope.customFullscreen;
-      
-      $mdDialog.show({
-        controller: DialogController,
-        templateUrl: 'myInfo.tmpl.html',
-        parent: angular.element(document.body),
-        targetEvent: ev,
-        clickOutsideToClose:true,
-        fullscreen: useFullScreen,
-        locals: { main: $scope.main}
-      })
-      .then(function(result) {
-        
-        $scope.main.model().newDisplayName = result.newDisplayName;
-        $scope.main.model().newUserName    = result.newUserName;
-
-        $scope.main.saveMyInfo();
-
-      }, function() {
-        $scope.status = 'You cancelled the dialog.';
-      });
-
-    };
-
-    $scope.closeSidenav = function () {
-      // Component lookup should always be available since we are not using `ng-if`
-      $mdSidenav('left').close()
-        .then(function () {
-          // $log.debug("close LEFT is done");
-        });
-
-      $mdSidenav('right').close()
-        .then(function () {
-          // $log.debug("close LEFT is done");
-        });
-    };
-
-    /**
-     * Supplies a function that will continue to operate until the
-     * time is up.
-     */
-    function debounce(func, wait, context) {
-      var timer;
-      return function debounced() {
-        var context = $scope,
-            args = Array.prototype.slice.call(arguments);
-        $timeout.cancel(timer);
-        timer = $timeout(function() {
-          timer = undefined;
-          func.apply(context, args);
-        }, wait || 10);
-      };
-    }
-    /**
-     * Build handler to open/close a SideNav; when animation finishes
-     * report completion in console
-     */
-    function buildDelayedToggler(navID) {
-      return debounce(function() {
-        $mdSidenav(navID)
-          .toggle()
-          .then(function () {
-            // $log.debug("toggle " + navID + " is done");
-          });
-      }, 200);
-    }
-  }
-
-  angular.module('whateverNameApp', ["gamingPlatformModule", 'ngMaterial'])
-      .config(['$mdThemingProvider', '$mdIconProvider', 
-        function ($mdThemingProvider, $mdIconProvider) {
-          
-          
-
-          $mdThemingProvider
-              .theme('altTheme')
-              .primaryPalette('purple')
-              .backgroundPalette('purple',{
-                'hue-1': '50'
-              });
-
-          $mdThemingProvider
-              .theme('default')
-              .primaryPalette('red')
-              .accentPalette('deep-orange')
-
-          $mdThemingProvider.theme('custom')
-          .primaryPalette('grey')
-          .accentPalette('deep-purple')
-          .warnPalette('green')
-
-          //create yr own palette 
-          $mdThemingProvider.definePalette('amazingPaletteName', {
-              '50': 'ffebee',
-              '100': 'ffcdd2',
-              '200': 'ef9a9a',
-              '300': 'e57373',
-              '400': 'ef5350',
-              '500': 'f44336',
-              '600': 'e53935',
-              '700': 'd32f2f',
-              '800': 'c62828',
-              '900': 'b71c1c',
-              'A100': 'ff8a80',
-              'A200': 'ff5252',
-              'A400': 'ff1744',
-              'A700': 'd50000',
-              'contrastDefaultColor': 'light',    // whether, by default, text         (contrast)
-                                          // on this palette should be dark or light
-              'contrastDarkColors': ['50', '100', //hues which contrast should be 'dark' by default
-               '200', '300', '400', 'A100'],
-              'contrastLightColors': undefined    // could also specify this if default was 'dark'
-          });
-
          $mdThemingProvider.theme('custom2')
-              .primaryPalette('amazingPaletteName')
-              .backgroundPalette('deep-purple');
-          
+            .primaryPalette('amazingPaletteName')
+            .backgroundPalette('deep-purple');
+        
+      }]);
 
-        }])
-      .config(['$controllerProvider',
-        function ($controllerProvider) {
-            $controllerProvider.allowGlobals();
-        }
-      ])
-      .controller('SideNavCtrl', ['$scope', '$mdSidenav', '$timeout', '$mdDialog', '$mdMedia', '$mdToast', SideNavCtrl]);
-  angular.bootstrap(document, ["whateverNameApp"]);
-
-}
 </script>
-
 </body>
 </html>

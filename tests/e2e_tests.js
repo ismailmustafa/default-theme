@@ -40,19 +40,23 @@ var e2eTests;
                 object[key] = addPrecallToFunction(precall, val);
             }
         }
-        function addLoggin(moduleName, object) {
+        function addLogging(moduleName, object) {
             addPrecall(addLogToFunction(moduleName), object);
         }
-        Logging.addLoggin = addLoggin;
+        Logging.addLogging = addLogging;
     })(Logging || (Logging = {}));
     var gameinvitePage;
     (function (gameinvitePage) {
         function getInviteText() {
-            return id('invite_text').getText();
+            var elem = id('invite_text');
+            waitForElement(elem);
+            return elem.getText();
         }
         gameinvitePage.getInviteText = getInviteText;
         function getCurrentLanguageCode() {
-            return getValueAttribute(model('currentLanguage'));
+            var elem = model('currentLanguage');
+            waitForElement(elem);
+            return getValueAttribute(elem);
         }
         gameinvitePage.getCurrentLanguageCode = getCurrentLanguageCode;
         function clickOnLanguageOption(languageName) {
@@ -60,35 +64,37 @@ var e2eTests;
         }
         gameinvitePage.clickOnLanguageOption = clickOnLanguageOption;
     })(gameinvitePage || (gameinvitePage = {}));
-    Logging.addLoggin("gameinvitePage", gameinvitePage);
+    Logging.addLogging("gameinvitePage", gameinvitePage);
     var mainPage;
     (function (mainPage) {
         function expectVisible() {
             expectDisplayed(getOpenNewMatchModal());
         }
         mainPage.expectVisible = expectVisible;
-        function getGameName() {
-            return id('game_name').getText();
-        }
-        mainPage.getGameName = getGameName;
-        function getMyAvatarImg() {
-            return id('my_avatar_img');
-        }
-        mainPage.getMyAvatarImg = getMyAvatarImg;
-        function openMyInfoModal() {
-            click(getMyAvatarImg());
-            return myInfoModal;
-        }
-        mainPage.openMyInfoModal = openMyInfoModal;
         function getOpenNewMatchModal() {
             return id('open_new_match_modal');
         }
         mainPage.getOpenNewMatchModal = getOpenNewMatchModal;
         function openNewMatchModal() {
             click(getOpenNewMatchModal());
+            newMatchModal.expectVisible();
             return newMatchModal;
         }
         mainPage.openNewMatchModal = openNewMatchModal;
+        function openLeftNav() {
+            click(getMenuButton());
+            leftNav.expectVisible();
+            return leftNav;
+        }
+        mainPage.openLeftNav = openLeftNav;
+        function getMenuButton() {
+            return id('menu_button');
+        }
+        mainPage.getMenuButton = getMenuButton;
+        function getGameName() {
+            return id('game_name').getText();
+        }
+        mainPage.getGameName = getGameName;
         function expectNoMatches() {
             expectMatchCounts({ yourTurn: 0, opponentTurn: 0, ended: 0 });
         }
@@ -104,11 +110,11 @@ var e2eTests;
         }
         mainPage.clickMatchIndex = clickMatchIndex;
     })(mainPage || (mainPage = {}));
-    Logging.addLoggin("mainPage", mainPage);
+    Logging.addLogging("mainPage", mainPage);
     var playPage;
     (function (playPage) {
         function expectVisible() {
-            expectDisplayed(getToggleTopBar());
+            expectDisplayed(getOpenExtraMatchOptions());
         }
         playPage.expectVisible = expectVisible;
         function getMatchStatusText() {
@@ -121,52 +127,44 @@ var e2eTests;
         playPage.getPlayerImg = getPlayerImg;
         function openInfoModalForPlayerIndex(playerIndex) {
             click(getPlayerImg(playerIndex));
+            playerInfoModal.expectVisible();
             return playerInfoModal;
         }
         playPage.openInfoModalForPlayerIndex = openInfoModalForPlayerIndex;
         function getOpenExtraMatchOptions() {
-            return id('open_extra_match_options_modal');
+            return id('open_play_page_menu');
         }
         playPage.getOpenExtraMatchOptions = getOpenExtraMatchOptions;
         function openExtraMatchOptions() {
             click(getOpenExtraMatchOptions());
+            extraMatchOptionsModal.expectVisible();
             return extraMatchOptionsModal;
         }
         playPage.openExtraMatchOptions = openExtraMatchOptions;
-        function getToggleTopBar() {
-            return id('toggle_top_bar');
+        function getGotoMain() {
+            return id('play_page_goto_main');
         }
-        playPage.getToggleTopBar = getToggleTopBar;
-        function toggleTopBar() {
-            click(getToggleTopBar());
+        playPage.getGotoMain = getGotoMain;
+        function gotoMain() {
+            clickAndWaitToDisappear(getGotoMain());
         }
-        playPage.toggleTopBar = toggleTopBar;
+        playPage.gotoMain = gotoMain;
     })(playPage || (playPage = {}));
-    Logging.addLoggin("playPage", playPage);
+    Logging.addLogging("playPage", playPage);
+    function waitForBackdropToDisappear() {
+        waitForElementToDisappear(element(by.css("md-backdrop")));
+    }
     var extraMatchOptionsModal;
     (function (extraMatchOptionsModal) {
         function expectVisible() {
-            expectDisplayed(getClose());
+            expectDisplayed(getSharePrintscreen());
         }
         extraMatchOptionsModal.expectVisible = expectVisible;
-        function getGotoMain() {
-            return id('extra_match_options_goto_main');
+        function waitTillClosed() {
+            waitForElementToDisappear(getSharePrintscreen());
+            waitForBackdropToDisappear();
         }
-        extraMatchOptionsModal.getGotoMain = getGotoMain;
-        function gotoMain() {
-            click(getGotoMain());
-            waitForElementToDisappear(getClose());
-        }
-        extraMatchOptionsModal.gotoMain = gotoMain;
-        function getOpenNewMatchModal() {
-            return id('extra_match_options_open_new_match_modal');
-        }
-        extraMatchOptionsModal.getOpenNewMatchModal = getOpenNewMatchModal;
-        function openNewMatchModal() {
-            click(getOpenNewMatchModal());
-            return newMatchModal;
-        }
-        extraMatchOptionsModal.openNewMatchModal = openNewMatchModal;
+        extraMatchOptionsModal.waitTillClosed = waitTillClosed;
         function getSharePrintscreen() {
             return id('share_invite_link_with_printscreen');
         }
@@ -180,8 +178,8 @@ var e2eTests;
         }
         extraMatchOptionsModal.getDismissMatch = getDismissMatch;
         function dismissMatch() {
-            click(getDismissMatch());
-            waitForElementToDisappear(getClose());
+            clickAndWaitToDisappear(getDismissMatch());
+            waitTillClosed();
         }
         extraMatchOptionsModal.dismissMatch = dismissMatch;
         function getLoadNext() {
@@ -189,63 +187,60 @@ var e2eTests;
         }
         extraMatchOptionsModal.getLoadNext = getLoadNext;
         function loadNext() {
-            click(getLoadNext());
-            waitForElementToDisappear(getClose());
+            clickAndWaitToDisappear(getLoadNext());
+            waitTillClosed();
         }
         extraMatchOptionsModal.loadNext = loadNext;
-        function getClose() {
-            return id('close_extra_match_options_modal');
-        }
-        extraMatchOptionsModal.getClose = getClose;
-        function close() {
-            click(getClose());
-            waitForElementToDisappear(getClose());
-        }
-        extraMatchOptionsModal.close = close;
     })(extraMatchOptionsModal || (extraMatchOptionsModal = {}));
-    Logging.addLoggin("extraMatchOptionsModal", extraMatchOptionsModal);
+    Logging.addLogging("extraMatchOptionsModal", extraMatchOptionsModal);
     var gameOverModal;
     (function (gameOverModal) {
         function expectVisible() {
-            expectDisplayed(getClose());
+            expectDisplayed(getMatchOverTitleElem());
         }
         gameOverModal.expectVisible = expectVisible;
+        function waitTillClosed() {
+            waitForElementToDisappear(getMatchOverTitleElem());
+            waitForBackdropToDisappear();
+        }
+        gameOverModal.waitTillClosed = waitTillClosed;
+        function getMatchOverTitleElem() {
+            return id('game_over_match_title');
+        }
+        gameOverModal.getMatchOverTitleElem = getMatchOverTitleElem;
         function getMatchOverTitle() {
-            return id('game_over_match_title').getText();
+            return getMatchOverTitleElem().getText();
         }
         gameOverModal.getMatchOverTitle = getMatchOverTitle;
         function getMatchOverStatus() {
             return id('game_over_match_status').getText();
         }
         gameOverModal.getMatchOverStatus = getMatchOverStatus;
-        function getShareInviteLinkAfterVictory() {
-            return id('share_invite_link_after_victory');
+        function getShareInviteLink() {
+            return id('share_invite_link');
         }
-        gameOverModal.getShareInviteLinkAfterVictory = getShareInviteLinkAfterVictory;
-        function shareInviteLinkAfterVictory() {
-            click(getShareInviteLinkAfterVictory());
+        gameOverModal.getShareInviteLink = getShareInviteLink;
+        function shareInviteLink() {
+            click(getShareInviteLink());
         }
-        gameOverModal.shareInviteLinkAfterVictory = shareInviteLinkAfterVictory;
-        function getDismissAndRematch() {
-            return id('game_over_dismiss_and_rematch');
+        gameOverModal.shareInviteLink = shareInviteLink;
+        function getRematch() {
+            return id('game_over_rematch');
         }
-        gameOverModal.getDismissAndRematch = getDismissAndRematch;
-        function dismissAndRematch() {
-            click(getDismissAndRematch());
-            waitForElementToDisappear(getClose());
+        gameOverModal.getRematch = getRematch;
+        // Starts a rematch (multi-player) or a new match (single-player).
+        function newMatch() {
+            clickAndWaitToDisappear(getRematch());
+            waitTillClosed();
         }
-        gameOverModal.dismissAndRematch = dismissAndRematch;
-        function getClose() {
-            return id('close_game_over_modal');
-        }
-        gameOverModal.getClose = getClose;
+        gameOverModal.newMatch = newMatch;
         function close() {
-            click(getClose());
-            waitForElementToDisappear(getClose());
+            currBrowser.executeScript("gamingPlatform.main.closeGameOverModal()");
+            waitTillClosed();
         }
         gameOverModal.close = close;
     })(gameOverModal || (gameOverModal = {}));
-    Logging.addLoggin("gameOverModal", gameOverModal);
+    Logging.addLogging("gameOverModal", gameOverModal);
     var friendsInvitePage;
     (function (friendsInvitePage) {
         function expectVisible() {
@@ -257,8 +252,7 @@ var e2eTests;
         }
         friendsInvitePage.getGotoMain = getGotoMain;
         function gotoMain() {
-            click(getGotoMain());
-            waitForElementToDisappear(getGotoMain());
+            clickAndWaitToDisappear(getGotoMain());
         }
         friendsInvitePage.gotoMain = gotoMain;
         function getStartNameFilter() {
@@ -284,8 +278,8 @@ var e2eTests;
             return getValueAttribute(getNameFilterModel());
         }
         friendsInvitePage.getNameFilter = getNameFilter;
-        function setNameFilter(newUserName) {
-            replaceKeys(getNameFilterModel(), newUserName);
+        function setNameFilter(nameFilter) {
+            replaceKeys(getNameFilterModel(), nameFilter);
         }
         friendsInvitePage.setNameFilter = setNameFilter;
         function expectFriendsCounts(count) {
@@ -313,15 +307,21 @@ var e2eTests;
         }
         friendsInvitePage.getNoFriendsMessage = getNoFriendsMessage;
     })(friendsInvitePage || (friendsInvitePage = {}));
-    Logging.addLoggin("friendsInvitePage", friendsInvitePage);
+    Logging.addLogging("friendsInvitePage", friendsInvitePage);
     var notifications;
     (function (notifications) {
+        function pressNotification(ngClick, notificationIndex) {
+            var elems = allElementsByNgClick(ngClick);
+            waitForNumberOfElements(elems, notificationIndex + 1);
+            click(elems.get(notificationIndex));
+            waitForNumberOfElements(elems, notificationIndex);
+        }
         function clickNotificationWithIndex(notificationIndex) {
-            click(allElementsByNgClick("notification.onClick()").get(notificationIndex));
+            pressNotification('notification.onClick()', notificationIndex);
         }
         notifications.clickNotificationWithIndex = clickNotificationWithIndex;
         function closeNotificationWithIndex(notificationIndex) {
-            click(allElementsByNgClick('notification.onClose()').get(notificationIndex));
+            pressNotification('notification.onClose()', notificationIndex);
         }
         notifications.closeNotificationWithIndex = closeNotificationWithIndex;
         function getNotificationsCount() {
@@ -366,7 +366,7 @@ var e2eTests;
         }
         notifications.expectTooManyMatches_DismissEndedMatches = expectTooManyMatches_DismissEndedMatches;
         function expectYouWereBlockedInNotificationIndex(notificationIndex) {
-            waitForElement(allElementsByNgClick('notification.onClose()').get(notificationIndex));
+            waitForNumberOfElements(allElementsByNgClick('notification.onClose()'), notificationIndex + 1);
             l10n.expectTranslate(getMessage(notificationIndex), "IN_APP_NOTIFICATION_YOU_WERE_BLOCKED");
         }
         notifications.expectYouWereBlockedInNotificationIndex = expectYouWereBlockedInNotificationIndex;
@@ -383,7 +383,7 @@ var e2eTests;
         }
         notifications.expectOneNotificationWithTitleId = expectOneNotificationWithTitleId;
         function expectOneNotification(titleId, messageId, interpolationParams) {
-            waitForElement(allElementsByNgClick('notification.onClose()').get(0));
+            waitForNumberOfElements(allElementsByNgClick('notification.onClose()'), 1);
             expectToBe(getNotificationsCount(), 1);
             if (titleId) {
                 l10n.expectTranslate(getTitle(0), titleId, interpolationParams);
@@ -394,28 +394,20 @@ var e2eTests;
         }
         notifications.expectOneNotification = expectOneNotification;
     })(notifications || (notifications = {}));
-    Logging.addLoggin("notifications", notifications);
+    Logging.addLogging("notifications", notifications);
     var newMatchModal;
     (function (newMatchModal) {
         function expectVisible() {
-            expectDisplayed(getClose());
+            expectDisplayed(getStartAutoMatch());
         }
         newMatchModal.expectVisible = expectVisible;
         function waitTillClosed() {
-            waitForElementToDisappear(getClose());
+            waitForElementToDisappear(getStartAutoMatch());
+            waitForBackdropToDisappear();
         }
         newMatchModal.waitTillClosed = waitTillClosed;
-        function getStartRematch() {
-            return id('start_rematch');
-        }
-        newMatchModal.getStartRematch = getStartRematch;
-        function startRematch() {
-            click(getStartRematch());
-            waitTillClosed();
-        }
-        newMatchModal.startRematch = startRematch;
         function getStartAutoMatch() {
-            return id('start_multiplayer_auto_match');
+            return id('fab_start_multiplayer_auto_match');
         }
         newMatchModal.getStartAutoMatch = getStartAutoMatch;
         function startAutoMatch() {
@@ -423,24 +415,8 @@ var e2eTests;
             waitTillClosed();
         }
         newMatchModal.startAutoMatch = startAutoMatch;
-        function getGotoInviteFriends() {
-            return id('goto_invite_friends');
-        }
-        newMatchModal.getGotoInviteFriends = getGotoInviteFriends;
-        function gotoInviteFriends() {
-            click(getGotoInviteFriends());
-        }
-        newMatchModal.gotoInviteFriends = gotoInviteFriends;
-        function getShareInviteLink() {
-            return id('share_invite_link_no_printscreen');
-        }
-        newMatchModal.getShareInviteLink = getShareInviteLink;
-        function shareInviteLink() {
-            click(getShareInviteLink());
-        }
-        newMatchModal.shareInviteLink = shareInviteLink;
         function getStartPractice() {
-            return id('start_practice');
+            return id('fab_start_practice');
         }
         newMatchModal.getStartPractice = getStartPractice;
         function startPractice() {
@@ -449,7 +425,7 @@ var e2eTests;
         }
         newMatchModal.startPractice = startPractice;
         function getStartPassAndPlay() {
-            return id('start_pass_and_play');
+            return id('fab_start_pass_and_play');
         }
         newMatchModal.getStartPassAndPlay = getStartPassAndPlay;
         function startPassAndPlay() {
@@ -457,27 +433,24 @@ var e2eTests;
             waitTillClosed();
         }
         newMatchModal.startPassAndPlay = startPassAndPlay;
-        function getClose() {
-            return id('close_new_match_modal');
-        }
-        newMatchModal.getClose = getClose;
-        function close() {
-            click(getClose());
-            waitTillClosed();
-        }
-        newMatchModal.close = close;
     })(newMatchModal || (newMatchModal = {}));
-    Logging.addLoggin("newMatchModal", newMatchModal);
+    Logging.addLogging("newMatchModal", newMatchModal);
+    // Bottom sheet.
     var playerInfoModal;
     (function (playerInfoModal) {
         function isPresent() {
-            return getClose().isPresent();
+            return getPlayerInfoAvatar().isPresent();
         }
         playerInfoModal.isPresent = isPresent;
         function expectVisible() {
-            expectDisplayed(getClose());
+            expectDisplayed(getPlayerInfoAvatar());
         }
         playerInfoModal.expectVisible = expectVisible;
+        function waitTillClosed() {
+            waitForElementToDisappear(getPlayerInfoAvatar());
+            waitForBackdropToDisappear();
+        }
+        playerInfoModal.waitTillClosed = waitTillClosed;
         function getDisplayName() {
             return id('player_info_name').getText();
         }
@@ -488,7 +461,8 @@ var e2eTests;
         }
         playerInfoModal.getNewGame = getNewGame;
         function inviteToNewGame() {
-            click(getNewGame());
+            clickAndWaitToDisappear(getNewGame());
+            waitTillClosed();
         }
         playerInfoModal.inviteToNewGame = inviteToNewGame;
         function getPlayerBlocked() {
@@ -499,104 +473,133 @@ var e2eTests;
             click(getPlayerBlocked());
         }
         playerInfoModal.blockPlayer = blockPlayer;
-        function getClose() {
-            return id('close_player_info');
+        function getPlayerInfoAvatar() {
+            return id('player_info_img');
         }
-        playerInfoModal.getClose = getClose;
+        playerInfoModal.getPlayerInfoAvatar = getPlayerInfoAvatar;
         function close() {
-            click(getClose());
-            waitForElementToDisappear(getClose());
+            clickAndWaitToDisappear(getPlayerInfoAvatar());
+            waitTillClosed();
         }
         playerInfoModal.close = close;
     })(playerInfoModal || (playerInfoModal = {}));
-    Logging.addLoggin("playerInfoModal", playerInfoModal);
-    var myInfoModal;
-    (function (myInfoModal) {
+    Logging.addLogging("playerInfoModal", playerInfoModal);
+    var leftNav;
+    (function (leftNav) {
         function expectVisible() {
-            expectDisplayed(getSubmit());
+            expectDisplayed(getMyAvatarImg());
         }
-        myInfoModal.expectVisible = expectVisible;
-        function getSubmit() {
-            return id('my_info_submit');
+        leftNav.expectVisible = expectVisible;
+        function waitTillClosed() {
+            // The avatar disappears pretty quickly, and then the newDisplayName input disappears last.
+            waitForElementToDisappear(getNewDisplayNameModel());
+            waitForBackdropToDisappear();
         }
-        myInfoModal.getSubmit = getSubmit;
-        // Save changes done in my info modal
-        function submit() {
-            click(getSubmit());
-            // Submitting still keeps the modal open until we verify that the username is unique,
-            // and if it's not (and we have an e2e test for it), then it shows an error and keeps myInfoModal open.
-            // So we can't do this: waitForElementToDisappear(getSubmit());
+        leftNav.waitTillClosed = waitTillClosed;
+        function getMyAvatarImg() {
+            return id('my_avatar_img');
         }
-        myInfoModal.submit = submit;
-        function getCancel() {
-            return id('my_info_cancel');
-        }
-        myInfoModal.getCancel = getCancel;
-        // Cancel changes and close my info modal
-        function cancel() {
-            click(getCancel());
-            waitForElementToDisappear(getCancel());
-        }
-        myInfoModal.cancel = cancel;
-        function getTitle() {
-            return id('my_info_title').getText();
-        }
-        myInfoModal.getTitle = getTitle;
-        function getCurrentLanguageCode() {
-            return getValueAttribute(model('currentLanguage'));
-        }
-        myInfoModal.getCurrentLanguageCode = getCurrentLanguageCode;
-        function clickOnLanguageOption(languageName) {
-            click(element(by.cssContainingText('option', languageName)));
-        }
-        myInfoModal.clickOnLanguageOption = clickOnLanguageOption;
+        leftNav.getMyAvatarImg = getMyAvatarImg;
         function getNewDisplayNameModel() {
             return model('newDisplayName');
         }
-        myInfoModal.getNewDisplayNameModel = getNewDisplayNameModel;
+        leftNav.getNewDisplayNameModel = getNewDisplayNameModel;
         function setNewDisplayName(newDisplayName) {
             replaceKeys(getNewDisplayNameModel(), newDisplayName);
         }
-        myInfoModal.setNewDisplayName = setNewDisplayName;
+        leftNav.setNewDisplayName = setNewDisplayName;
         function getNewDisplayName() {
             return getValueAttribute(getNewDisplayNameModel());
         }
-        myInfoModal.getNewDisplayName = getNewDisplayName;
-        function getNewUserNameModel() {
-            return model('newUserName');
+        leftNav.getNewDisplayName = getNewDisplayName;
+        /* angular-material's select element is really weird, so I can't test it.
+        export function getCurrentLanguageCode(): webdriver.promise.Promise<string> {
+          return getValueAttribute(model('currentLanguage'));
         }
-        myInfoModal.getNewUserNameModel = getNewUserNameModel;
-        function setNewUserName(newUserName) {
-            replaceKeys(getNewUserNameModel(), newUserName);
+        export function clickOnLanguageOption(languageName: string) {
+          click(element(by.cssContainingText('option', languageName)));
+        }*/
+        function changeLanguage(languageCode) {
+            currBrowser.executeScript('gamingPlatform.main.l10n().changeLanguage("' + languageCode + '")');
+            willDoLog("After changing the languages, we wait until feedbackBtnName changes to the correct value.");
+            waitUntil(function () { return getOpenFeedbackBtnName().then(function (feedbackBtnName) {
+                return l10n.getTranslate("MAIN_FEEDBACK_AND_BUGS_TITLE", {}, languageCode).then(function (expectedText) { return feedbackBtnName == expectedText; });
+            }); });
         }
-        myInfoModal.setNewUserName = setNewUserName;
-        function getNewUserName() {
-            return getValueAttribute(getNewUserNameModel());
+        leftNav.changeLanguage = changeLanguage;
+        /* make FB work...
+        export function getFbLogin() {
+          return id('my_info_fb_login');
         }
-        myInfoModal.getNewUserName = getNewUserName;
-        function getUserNameWasTaken() {
-            return id("my_info_username_was_taken");
+        export function fbLogin() {
+          click(getFbLogin());
         }
-        myInfoModal.getUserNameWasTaken = getUserNameWasTaken;
-        function getFbLogin() {
-            return id('my_info_fb_login');
+        export function getGotoInviteFriends() {
+          return id('goto_invite_friends');
         }
-        myInfoModal.getFbLogin = getFbLogin;
-        function fbLogin() {
-            click(getFbLogin());
+        export function gotoInviteFriends() {
+          click(getGotoInviteFriends());
+          waitTillClosed();
+        }*/
+        function getStartAutoMatch() {
+            return id('start_multiplayer_auto_match');
         }
-        myInfoModal.fbLogin = fbLogin;
+        leftNav.getStartAutoMatch = getStartAutoMatch;
+        function startAutoMatch() {
+            click(getStartAutoMatch());
+            waitTillClosed();
+        }
+        leftNav.startAutoMatch = startAutoMatch;
+        function getStartPractice() {
+            return id('start_practice');
+        }
+        leftNav.getStartPractice = getStartPractice;
+        function startPractice() {
+            click(getStartPractice());
+            waitTillClosed();
+        }
+        leftNav.startPractice = startPractice;
+        function getStartPassAndPlay() {
+            return id('start_pass_and_play');
+        }
+        leftNav.getStartPassAndPlay = getStartPassAndPlay;
+        function startPassAndPlay() {
+            click(getStartPassAndPlay());
+            waitTillClosed();
+        }
+        leftNav.startPassAndPlay = startPassAndPlay;
+        function getShareInviteLink() {
+            return id('share_invite_link_no_printscreen');
+        }
+        leftNav.getShareInviteLink = getShareInviteLink;
+        function shareInviteLink() {
+            click(getShareInviteLink());
+        }
+        leftNav.shareInviteLink = shareInviteLink;
         function getOpenFeedbackModal() {
             return id('open_feedback_modal');
         }
-        myInfoModal.getOpenFeedbackModal = getOpenFeedbackModal;
+        leftNav.getOpenFeedbackModal = getOpenFeedbackModal;
         function openFeedbackModal() {
             click(getOpenFeedbackModal());
             return feedbackModal;
         }
-        myInfoModal.openFeedbackModal = openFeedbackModal;
-    })(myInfoModal || (myInfoModal = {}));
-    Logging.addLoggin("myInfoModal", myInfoModal);
+        leftNav.openFeedbackModal = openFeedbackModal;
+        function getOpenFeedbackBtnName() {
+            return id('open_feedback_btn_name').getText();
+        }
+        leftNav.getOpenFeedbackBtnName = getOpenFeedbackBtnName;
+        function getClose() {
+            return id('close_left_nav');
+        }
+        leftNav.getClose = getClose;
+        function close() {
+            click(getClose());
+            waitTillClosed();
+        }
+        leftNav.close = close;
+    })(leftNav || (leftNav = {}));
+    Logging.addLogging("leftNav", leftNav);
     var feedbackModal;
     (function (feedbackModal) {
         function expectVisible() {
@@ -604,7 +607,7 @@ var e2eTests;
         }
         feedbackModal.expectVisible = expectVisible;
         function getFeedbackModel() {
-            return model('feedbackText');
+            return element(by.model(("dialog.result"))); //used to be: model('feedbackText');
         }
         feedbackModal.getFeedbackModel = getFeedbackModel;
         function getFeedback() {
@@ -612,24 +615,25 @@ var e2eTests;
         }
         feedbackModal.getFeedback = getFeedback;
         function setFeedback(feedbackText) {
-            getFeedbackModel().sendKeys(feedbackText);
+            replaceKeys(getFeedbackModel(), feedbackText);
         }
         feedbackModal.setFeedback = setFeedback;
         function getClose() {
-            return id('close_feedback_modal');
+            return element(byNgClick('dialog.abort()'));
         }
         feedbackModal.getClose = getClose;
         function close() {
-            click(getClose());
-            waitForElementToDisappear(getClose());
+            clickAndWaitToDisappear(getClose());
         }
         feedbackModal.close = close;
     })(feedbackModal || (feedbackModal = {}));
-    Logging.addLoggin("feedbackModal", feedbackModal);
+    Logging.addLogging("feedbackModal", feedbackModal);
     var tictactoe;
     (function (tictactoe) {
         var isInGameIframe = false;
         function run(func) {
+            // The game_iframe_protector takes time to disappear
+            waitForElementToDisappear(element(by.id('game_iframe_protector')));
             currBrowser.driver.switchTo().frame('game_iframe');
             // Sometimes it takes for the game_iframe some time to load.
             waitForElement(element(by.id('e2e_test_div_0x0')));
@@ -691,16 +695,20 @@ var e2eTests;
     var l10n;
     (function (l10n) {
         function expectTranslate(actual, translationId, interpolationParams, languageCode) {
-            var script = 'return gamingPlatform.$rootScope.main.l10n().translate(' + JSON.stringify(translationId) +
-                (interpolationParams ? "," + JSON.stringify(interpolationParams) : "") +
-                (languageCode ? "," + JSON.stringify(languageCode) : "") + ")";
-            log("Executing script in " + getBrowserName(currBrowser) + ":\n" + script);
-            currBrowser.executeScript(script).then(function (text) {
+            getTranslate(translationId, interpolationParams, languageCode).then(function (text) {
                 log("L10n of " + translationId + " is " + text);
                 expectToBe(actual, text);
             });
         }
         l10n.expectTranslate = expectTranslate;
+        function getTranslate(translationId, interpolationParams, languageCode) {
+            var script = 'return (gamingPlatform.main ? gamingPlatform.main : gamingPlatform.gameinvite.main).l10n().translate(' + JSON.stringify(translationId) +
+                (interpolationParams ? "," + JSON.stringify(interpolationParams) : "") +
+                (languageCode ? "," + JSON.stringify(languageCode) : "") + ")";
+            log("Executing script in " + getBrowserName(currBrowser) + ":\n" + script);
+            return currBrowser.executeScript(script);
+        }
+        l10n.getTranslate = getTranslate;
     })(l10n || (l10n = {}));
     var lastTest;
     var JasmineOverrides;
@@ -740,6 +748,8 @@ var e2eTests;
     // Common functions
     var currBrowser = browser;
     var secondBrowser = browser.forkNewDriverInstance();
+    browser.ignoreSynchronization = true;
+    secondBrowser.ignoreSynchronization = true;
     function getBrowserName(b) {
         return b === secondBrowser ? "browser2" : "browser1";
     }
@@ -782,37 +792,49 @@ var e2eTests;
         var e = currBrowser.element;
         return e.all(locator);
     }
+    function byNgClick(clickExpression) {
+        return by.css('[ng-click="' + clickExpression + '"]');
+    }
+    function byNgIf(ifExpression) {
+        return by.css('[ng-if="' + ifExpression + '"]');
+    }
     function allElementsByNgClick(clickExpression) {
-        return allElements(by.css('div[ng-click="' + clickExpression + '"]'));
+        return allElements(byNgClick(clickExpression));
     }
     function allElementsByNgIf(ifExpression) {
-        return allElements(by.css('div[ng-if="' + ifExpression + '"]'));
+        return allElements(byNgIf(ifExpression));
+    }
+    function printArgumentsToError() {
+        log("printArgumentsToError args=" + JSON.stringify(arguments));
+        return false;
+    }
+    function safePromise(p) {
+        if (!p)
+            error("safePromise p = " + p);
+        return p.then(function (x) { return x; }, function () { return false; });
+    }
+    function waitUntil(fn) {
+        currBrowser.driver.wait(fn, 10000).thenCatch(error);
     }
     function waitForElement(elem) {
         var elemName = getElementName(elem);
         willDoLog("waitForElement " + elemName);
-        // Wait until it becomes displayed. It might not be displayed right now
-        // because it takes some time to pass messages via postMessage between game and platform.
-        currBrowser.driver.wait(function () { return elem.isDisplayed().then(function (isDisplayed) { return elem.isEnabled().then(function (isEnabled) { return isDisplayed && isEnabled; }); }); }, 10000).then(function () {
-            // success
-        }, function () {
-            // failure
-            error("Failed waitForElement: " + elemName + " args=" + JSON.stringify(arguments));
-        });
+        waitUntil(function () { return safePromise(elem.isPresent()).then(function (isPresent) { return isPresent &&
+            safePromise(elem.isDisplayed()).then(function (isDisplayed) {
+                return isDisplayed && safePromise(elem.isEnabled());
+            }); }); });
         expectToBe(elem.isDisplayed(), true);
     }
     function waitForElementToDisappear(elem) {
         var elemName = getElementName(elem);
         willDoLog("waitForElementToDisappear " + elemName);
-        // Wait until it becomes displayed. It might not be displayed right now
-        // because it takes some time to pass messages via postMessage between game and platform.
-        currBrowser.driver.wait(function () { return elem.isPresent().then(function (isPresent) { return !isPresent; }); }, 10000).then(function () {
-            // success
-        }, function () {
-            // failure
-            error("Failed waitForElementToDisappear: " + elemName + " args=" + JSON.stringify(arguments));
-        });
-        expectToBe(elem.isPresent(), false);
+        waitUntil(function () { return safePromise(elem.isPresent()).then(function (isPresent) { return isPresent ?
+            safePromise(elem.isDisplayed()).then(function (isDisplayed) { return !isDisplayed; }) : !isPresent; }); });
+        // Element is either not present or not displayed.
+    }
+    function waitForNumberOfElements(elements, waitForNumber) {
+        willDoLog("waitForNumberOfElements to be " + waitForNumber);
+        waitUntil(function () { return elements.count().then(function (actualNumber) { return actualNumber == waitForNumber; }); });
     }
     function getElementName(elem) {
         return getBrowserName(currBrowser) + "." + elem.locator();
@@ -823,7 +845,7 @@ var e2eTests;
         console.log("After " + (now - startedExecutionTime) + " milliseconds: " + msg);
     }
     function error(msg) {
-        log(msg);
+        log(Array.prototype.slice.call(arguments).join(", "));
         currBrowser.pause();
     }
     function willDoLog(msg) {
@@ -847,9 +869,19 @@ var e2eTests;
     }
     // For <input> elements: replaces the text inside the element with newStr.
     function replaceKeys(elem, newStr) {
+        var b = currBrowser;
         waitForElement(elem);
         elem.clear();
         elem.sendKeys(newStr);
+        currBrowser.sleep(1000); // for some weird reason, in leftNav.setNewDisplayName (and I saw it happening when entering feedback text),
+        // it's often empty (model().newDisplayName is undefined)
+        // Even with sleep of 1000 it still happens sometimes, so I'll retry
+        getValueAttribute(elem).then(function (actualStr) {
+            if (actualStr !== newStr) {
+                console.log("replaceKeys misbehaved, so calling it again");
+                runInBrowser(b, function () { return replaceKeys(elem, newStr); });
+            }
+        });
     }
     function getValueAttribute(elem) {
         return getAttribute(elem, 'value');
@@ -870,6 +902,10 @@ var e2eTests;
             //Element is not clickable at point (983, 58). Other element would receive the click: <div class="overlayModal ng-scope" ng-click="modal.backdrop($event)" ng-if="modal.isShowing()" aria-hidden="true">...</div>
             error("Failed clicking" + msg + " stacktrace=" + stacktrace + " arguments=" + JSON.stringify(arguments));
         });
+    }
+    function clickAndWaitToDisappear(elem) {
+        click(elem);
+        waitForElementToDisappear(elem);
     }
     function expectToBe(p, val) {
         var stacktrace = getStacktrace();
@@ -906,23 +942,20 @@ var e2eTests;
         function getUserNameForBrowser(browserNumber) {
             // Max length allowed in my platform is 30 chars
             // "testBrowser1 015542174922302365" is already 31 chars.
-            var name = 'testBr' + browserNumber + ' ' + ('' + Math.random()).substr(2);
-            check(name.match(/^testBr[0-9][ ][0-9]+$/).length == 1);
+            var name = 'testbr' + browserNumber + '-' + ('' + Math.random()).substr(2);
+            // I'm choosing a name with all lowercase and no space (so the username will be the same).
+            check(name.match(/^testbr[0-9][-][0-9]+$/).length == 1);
             check(name.length <= 30);
             return name;
         }
-        function loadAppAndCloseMyInfoModalAndMaybeGameinviteNotification() {
-            loadApp();
-            // Before closing any notification (like gameinvite), we need to close my info modal
-            myInfoModal.getCancel().isPresent().then(runInSameBrowser(function (isMyInfoModalDisplayed) {
-                if (isMyInfoModalDisplayed)
-                    myInfoModal.cancel();
-            }));
+        function closeLeftNavAndMaybeGameinviteNotification() {
+            // Before closing any notification (like gameinvite), we need to close leftNav
+            leftNav.close();
             notifications.expectMaybeGameinviteNotification();
         }
         beforeEach(function () {
             log('\n\n\nRunning test: ' + lastTest.fullName);
-            loadAppAndCloseMyInfoModalAndMaybeGameinviteNotification();
+            loadApp();
             checkNoErrorInLogs();
         });
         afterEach(function () {
@@ -945,6 +978,7 @@ var e2eTests;
                 if (isPostTest)
                     mainPage.expectNoMatches(); // Ok to have matches before loadApp()
                 notifications.expectNoNotifications();
+                leftNav.waitTillClosed();
                 willDoLog("End checkInvariantsInCurrBrowser");
             }
         }
@@ -962,6 +996,16 @@ var e2eTests;
             log("Checking post-test invariants: that all browsers are back in main page, and that there are no notifications and no matches.");
             checkInvariantsInAllBrowsers(true);
         }
+        function getDeviceParams() {
+            //console.log("\n\n\nXXXXX\n\n\nbrowser.params=" + JSON.stringify(browser.params));
+            return browser.params.supportedDevices[browser.params.deviceName];
+        }
+        function getDeviceDirName() {
+            return getDeviceParams().dirName;
+        }
+        function getDeviceMetrics() {
+            return getDeviceParams().deviceMetrics;
+        }
         setPosition(browser, 0, 0);
         setPosition(secondBrowser, 450, 0);
         setSize(browser);
@@ -977,7 +1021,8 @@ var e2eTests;
             // The real width&height are set in protractor.conf:
             // 'chromeOptions': { "mobileEmulation": { "deviceName": "Apple iPhone 4" } }
             // So this size just needs to be bigger than 320x(480+address-bar+chrome-tabs)
-            b.driver.manage().window().setSize(400, 600);
+            var widthAndHeight = getDeviceMetrics();
+            b.driver.manage().window().setSize(widthAndHeight.width + 20, widthAndHeight.height + 100);
         }
         function expectEmptyBrowserLogs(b) {
             b.manage().logs().get('browser').then(function (browserLog) {
@@ -1033,6 +1078,10 @@ var e2eTests;
             });
             playPage.openExtraMatchOptions().dismissMatch();
         }
+        function getIsFirstPlayerMe() {
+            playPage.expectVisible();
+            return currBrowser.executeScript('return gamingPlatform.main.currentMatch().getPlayers()[0].isMe()');
+        }
         // Creates one auto-match with an unknown opponent.
         // Auto-match is tricky because if some previous test failed then the server
         // may have a pending auto match (or if someone else is doing an e2e test concurrently).
@@ -1041,22 +1090,14 @@ var e2eTests;
             log("\n\n createAutoMatch retryNumber=" + retryNumber);
             startAutoMatch(retryNumber);
             // If we have an auto-match with an unknown opponent, then the opponent is the second player.
-            // Two options:
-            // 1) I was matched with someone, and then the second player is me, so clicking on the img opens *my info*.
-            // 2) I was matched with unknown opponent, and then the second player is unknown, so clicking on the img opens *player info*.
-            playPage.openInfoModalForPlayerIndex(1).isPresent().then(function (isPresent) {
-                if (!isPresent) {
-                    // Option 1: so *my info* is opened.
+            getIsFirstPlayerMe().then(function (isFirstPlayerMe) {
+                if (!isFirstPlayerMe) {
                     log("\n\n No luck in createAutoMatch: I was hoping not to be matched, but first-browser was auto-matched. Making a move and dismissing match and retrying.\n\n");
-                    myInfoModal.cancel();
                     // Make any move and resign (I make a move so these auto matches will be cleaned up)
                     makeMoveAndDismissMatch(); // will take me back to main menu
                     createAutoMatch(retryNumber + 1);
                 }
                 else {
-                    // Option 2: *player info* is open.
-                    // Close player info.
-                    playerInfoModal.close();
                     // yippie! make a move
                     tictactoe.run(function () {
                         tictactoe.expectEmptyBoard();
@@ -1064,9 +1105,8 @@ var e2eTests;
                         tictactoe.clickDivAndExpectPiece(1, 1, ""); // You can only make one move (double checking it's not single player)
                     });
                     notifications.expectMoveSent_CreateNewMatch();
-                    notifications.clickNotificationWithIndex(0);
-                    newMatchModal.close();
-                    playPage.openExtraMatchOptions().gotoMain();
+                    notifications.closeNotificationWithIndex(0);
+                    playPage.gotoMain();
                     continueAfterAutoMatch();
                 }
             });
@@ -1088,19 +1128,17 @@ var e2eTests;
                 startAutoMatch(retryNumber);
                 // Should be:
                 // First browser is the first player, and second browser is the second player.
-                // So clicking on the first player should open player info modal (and not "my info modal"),
-                // with the first player displayName.
-                playPage.openInfoModalForPlayerIndex(0).isPresent().then(function (isPresent) {
+                getIsFirstPlayerMe().then(function (isFirstPlayerMe) {
                     runInSecondBrowser(function () {
-                        if (!isPresent) {
+                        if (isFirstPlayerMe) {
                             log("\n\n No luck #1 in createAutoMatchWithFirstBrowser: I was hoping to be matched, but second-browser wasn't auto-matched with anyone. Just dismissing match and retrying.\n\n");
-                            // It opened my player info, so I'm just dismissing the match and retrying.
-                            myInfoModal.cancel();
+                            // Dismissing the match and retrying.
                             playPage.openExtraMatchOptions().dismissMatch(); // will take me back to main menu
                             createAutoMatchWithFirstBrowser(retryNumber + 1);
                         }
                         else {
                             // There is a tiny chance second browser was auto-matched with someone else (not first browser)
+                            playPage.openInfoModalForPlayerIndex(0);
                             playerInfoModal.getDisplayName().then(function (otherPlayerName) {
                                 runInSecondBrowser(function () {
                                     playerInfoModal.close();
@@ -1133,7 +1171,7 @@ var e2eTests;
                     tictactoe.clickDivAndExpectPiece(2, 2, ""); // You can only make one move (double checking it's not single player)
                 });
                 notifications.expectMoveSent_CreateNewMatch();
-                playPage.openExtraMatchOptions().gotoMain();
+                playPage.gotoMain();
                 mainPage.expectMatchCounts({ yourTurn: 0, opponentTurn: 1, ended: 0 });
             });
             loadApp();
@@ -1163,87 +1201,69 @@ var e2eTests;
             // ChannelApi keeps an HTTP connection open, which causes protractor to fail after 10 seconds with:
             // Error Timed out waiting for Protractor to synchronize with the page
             // So we turn off channel API (isProtractor=true does that).
+            // to-do: now that we use ignoreSynchronization=true, 
+            // then we can remove isProtractor=true (which will enable FB-web and ChannelApi),
+            // but to save on resources I should avoid loading the app in beforeEach.
             getPage('/app/index.html?onlyGameId=' + GAME_ID + '&isProtractor=true&testBrowserName=' + getBrowserName(currBrowser));
         }
+        function loadGameinvite(userName) {
+            getPage('/gameinvite/?' + userName + '=testtictactoe');
+            var interpolationParams = { GAME_NAME: "test-tictactoe", PLAYER_NAME: userName };
+            var translationId = "GAME_INVITE_PLAYER_NAME_WANTS_TO_PLAY_GAME_NAME_WITH_YOU";
+            l10n.expectTranslate(gameinvitePage.getInviteText(), translationId, interpolationParams);
+            expectDisplayed(id('gameHeader320x50Url'));
+            return interpolationParams;
+        }
         function oneTimeInitInBothBrowsers() {
-            // The first time the app loads, we show "my user info modal" (but in beforeEach I close myInfo modal to close possible gameinvite notification)
-            runInSecondBrowser(function () {
-                loadAppAndCloseMyInfoModalAndMaybeGameinviteNotification();
-            });
-            changeDisplayAndUserName(browser1NameStr);
-            runInSecondBrowser(function () {
-                changeDisplayAndUserName(browser2NameStr);
-            });
-        }
-        function changeDisplayAndUserName(newName) {
-            // Sets my displayName and userName to browser1NameStr.
-            mainPage.openMyInfoModal();
-            // Verify that initially the name starts with Guest-, and userName is empty.
-            expectToContain(myInfoModal.getNewDisplayName(), "Guest-");
-            expectToBe(myInfoModal.getNewUserName(), '');
-            // Change displayName and userName to newName.
-            myInfoModal.setNewDisplayName(newName);
-            myInfoModal.setNewUserName(newName);
-            myInfoModal.submit();
-        }
-        // This test must be first because it requires an empty local-storage,
-        // and following tests assume the displayName and userName were changed.
-        it('one-time initialization: shows "my user info modal" when loading an app for the first time, and changes displayName&userName in the first browser', function () {
-            oneTimeInitInBothBrowsers();
-            // Verify displayName and userName changed.
-            mainPage.openMyInfoModal();
-            expectToBe(myInfoModal.getNewDisplayName(), browser1NameStr);
-            expectToBe(myInfoModal.getNewUserName(), browser1NameStr);
-        });
-        it('can change displayName&userName, and cancel changes', function () {
-            mainPage.openMyInfoModal();
-            var someOtherName = "foobar" + Math.random();
-            myInfoModal.setNewDisplayName(someOtherName);
-            myInfoModal.setNewUserName(someOtherName);
-            // Canceling so displayName and userName should not change.
-            myInfoModal.cancel();
-            mainPage.openMyInfoModal();
-            // Verifying displayName and userName did not change.
-            expectToBe(myInfoModal.getNewDisplayName(), browser1NameStr);
-            expectToBe(myInfoModal.getNewUserName(), browser1NameStr);
-        });
-        it('will show a warning when browser2 change its userName to the userName of browser1', function () {
-            // Testing that one can't select a username that was taken by someone else.
+            // The first time the app loads, we show leftNav.
+            closeLeftNavAndMaybeGameinviteNotification();
             runInSecondBrowser(function () {
                 loadApp();
-                notifications.expectNoNotifications();
-                mainPage.openMyInfoModal();
-                var usernameWasTaken = myInfoModal.getUserNameWasTaken();
-                expectToBe(myInfoModal.getNewUserName(), browser2NameStr);
-                expectNotPresent(usernameWasTaken);
-                myInfoModal.setNewUserName(browser1NameStr);
-                myInfoModal.submit();
-                expectDisplayed(usernameWasTaken);
-                l10n.expectTranslate(usernameWasTaken.getText(), 'MODAL_USER_INFO_USERNAME_WAS_TAKEN');
-                expect(myInfoModal.getNewUserName()).toMatch(regexEscape(browser1NameStr) + "[0-9]+"); // We add some random number at the end as a suggestion
-                myInfoModal.cancel();
-                // Verify that username didn't change
-                mainPage.openMyInfoModal();
-                expectToBe(myInfoModal.getNewUserName(), browser2NameStr);
+                closeLeftNavAndMaybeGameinviteNotification();
             });
+            changeDisplayName(browser1NameStr);
+            runInSecondBrowser(function () {
+                changeDisplayName(browser2NameStr);
+            });
+        }
+        function changeDisplayName(newName) {
+            // Sets my displayName to browser1NameStr (this will also set userName to browser1NameStr because that string is very unique and highly unlikely to be taken by anyone).
+            mainPage.openLeftNav();
+            // Verify that initially the name starts with Guest-.
+            expectToContain(leftNav.getNewDisplayName(), "Guest-");
+            // Change displayName to newName.
+            leftNav.setNewDisplayName(newName);
+            leftNav.close();
+        }
+        // This test must be first because it requires an empty local-storage,
+        // and following tests assume the displayName were changed.
+        it('one-time initialization: shows leftNav when loading an app for the first time, changes displayName in the first browser, and verifies game helpscreen is shown', function () {
+            oneTimeInitInBothBrowsers();
+            // Verify displayName changed.
+            mainPage.openLeftNav();
+            expectToBe(leftNav.getNewDisplayName(), browser1NameStr);
+            leftNav.close();
+            // The game helpscreen is open on the first time.
+            mainPage.openNewMatchModal().startPractice();
+            tictactoe.run(function () {
+                clickAndWaitToDisappear(element(by.id('e2e_test_close_help_screen')));
+            });
+            playPage.gotoMain();
         });
         it('can open feedback modal', function () {
             // Testing opening feedback (but not sending it, to avoid getting a feedback email)
-            mainPage.openMyInfoModal().openFeedbackModal();
+            mainPage.openLeftNav().openFeedbackModal();
             feedbackModal.setFeedback("Some feedback text");
             feedbackModal.close();
-            myInfoModal.cancel();
+            leftNav.close();
         });
         it('can switch languages and it localize correctly', function () {
-            mainPage.openMyInfoModal();
+            mainPage.openLeftNav();
             // Testing changing a langague (English->Hebrew->English), and making sure l10n worked.
-            l10n.expectTranslate(myInfoModal.getTitle(), "MODAL_TITLE_USER_INFO", {}, "en");
-            expectToBe(myInfoModal.getCurrentLanguageCode(), 'string:en');
-            myInfoModal.clickOnLanguageOption('עברית'); // Selecting language Hebrew
-            expectToBe(myInfoModal.getCurrentLanguageCode(), 'string:iw');
-            l10n.expectTranslate(myInfoModal.getTitle(), "MODAL_TITLE_USER_INFO", {}, "iw");
-            myInfoModal.clickOnLanguageOption('English'); // Selecting language English
-            l10n.expectTranslate(myInfoModal.getTitle(), "MODAL_TITLE_USER_INFO", {}, "en");
+            l10n.expectTranslate(leftNav.getOpenFeedbackBtnName(), "MAIN_FEEDBACK_AND_BUGS_TITLE", {}, "en");
+            leftNav.changeLanguage('iw'); // Selecting language Hebrew
+            leftNav.changeLanguage('en'); // Selecting language English
+            leftNav.close();
             // to-do: add a test that language was switch in TicTacToe game (i.e., that the rules' language was changed)
         });
         it('can go to practice play page, click on back button and it will go back to main menu', function () {
@@ -1254,14 +1274,6 @@ var e2eTests;
         it('can auto-match', function () {
             mainPage.expectNoMatches();
             createAutoMatch(0);
-        });
-        it('can toggle top bar (in practice play page)', function () {
-            mainPage.openNewMatchModal().startPractice();
-            playPage.toggleTopBar();
-            expectNotPresent(playPage.getOpenExtraMatchOptions());
-            playPage.toggleTopBar();
-            expectDisplayed(playPage.getOpenExtraMatchOptions());
-            playPage.openExtraMatchOptions().gotoMain();
         });
         it('can make a move in a practice TicTacToe match, and restart it', function () {
             mainPage.openNewMatchModal().startPractice();
@@ -1274,12 +1286,13 @@ var e2eTests;
                 currBrowser.driver.wait(protractor.until.elementsLocated(by.id('e2e_test_pieceO_0x0')), 10000);
                 tictactoe.expectPiece(0, 0, 'O'); // AI played at position 0x0
             });
+            playPage.gotoMain();
             // Restart a new practice match.
-            playPage.openExtraMatchOptions().openNewMatchModal().startPractice();
+            mainPage.openNewMatchModal().startPractice();
             tictactoe.run(function () {
                 tictactoe.expectEmptyBoard();
             });
-            playPage.openExtraMatchOptions().gotoMain();
+            playPage.gotoMain();
         });
         it('can finish a passAndPlay TicTacToe match, restart it, and go back to main menu', function () {
             mainPage.openNewMatchModal().startPassAndPlay();
@@ -1297,40 +1310,29 @@ var e2eTests;
                     ['O', 'O', '']]);
             });
             expectDisplayed(id('game_over_match_status'));
-            gameOverModal.close(); // Will restart a new passAndPlay
+            gameOverModal.newMatch(); // Will restart a new single-player game
             tictactoe.run(function () {
                 tictactoe.expectEmptyBoard();
                 tictactoe.clickDivAndExpectPiece(0, 0, "X");
                 tictactoe.clickDivAndExpectPiece(1, 1, "O");
             });
             // Restart passAndPlay
-            playPage.openExtraMatchOptions().openNewMatchModal().startPassAndPlay();
+            playPage.gotoMain();
+            mainPage.openNewMatchModal().startPassAndPlay();
             tictactoe.run(function () {
                 tictactoe.expectEmptyBoard();
             });
-            playPage.openExtraMatchOptions().gotoMain();
-        });
-        it('from darrenlevy@: can go to passAndPlay, make move, go to Invite Friends and go back to main menu', function () {
-            mainPage.openNewMatchModal().startPassAndPlay();
-            tictactoe.run(function () {
-                tictactoe.clickDivAndExpectPiece(0, 0, 'X');
-            });
-            playPage.openExtraMatchOptions().openNewMatchModal().gotoInviteFriends();
-            friendsInvitePage.gotoMain();
-            mainPage.expectVisible();
+            playPage.gotoMain();
         });
         it('from Prasoon Goyal & Rachita Hajela: can go to practice, open game invite in 2nd browser, back to main menu', function () {
             mainPage.openNewMatchModal().startPractice();
             runInSecondBrowser(function () {
-                getPage('/gameinvite/?' + browser1NameStr + '=testtictactoe');
-                var interpolationParams = { GAME_NAME: "test-tictactoe", PLAYER_NAME: browser1NameStr };
-                var translationId = "GAME_INVITE_PLAYER_NAME_WANTS_TO_PLAY_GAME_NAME_WITH_YOU";
-                l10n.expectTranslate(gameinvitePage.getInviteText(), translationId, interpolationParams);
+                var interpolationParams = loadGameinvite(browser1NameStr);
                 loadApp();
                 notifications.expectOneNotification('IN_APP_NOTIFICATION_GAME_INVITE_TITLE', 'IN_APP_NOTIFICATION_GAME_INVITE_BODY', interpolationParams);
                 notifications.closeNotificationWithIndex(0);
             });
-            playPage.openExtraMatchOptions().gotoMain();
+            playPage.gotoMain();
         });
         it('from DiegoRincon: can finish a practice TicTacToe match and go back to main menu', function () {
             mainPage.openNewMatchModal().startPractice();
@@ -1350,7 +1352,7 @@ var e2eTests;
             });
             expectDisplayed(id('game_over_match_status'));
             gameOverModal.close();
-            playPage.openExtraMatchOptions().gotoMain();
+            playPage.gotoMain();
         });
         it('from ismailmustafa and pdhar (team Carrom)@: can finish a passAndPlay match, go to the main menu, finish a practice match, and go back to main menu', function () {
             mainPage.openNewMatchModal().startPassAndPlay();
@@ -1373,7 +1375,7 @@ var e2eTests;
             // Check for game over modal, close, and go to main
             expectDisplayed(id('game_over_match_status'));
             gameOverModal.close();
-            playPage.openExtraMatchOptions().gotoMain();
+            playPage.gotoMain();
             // Start a practice match
             mainPage.openNewMatchModal().startPractice();
             tictactoe.run(function () {
@@ -1390,7 +1392,7 @@ var e2eTests;
             // Check for game over modal, close, and go to main
             expectDisplayed(id('game_over_match_status'));
             gameOverModal.close();
-            playPage.openExtraMatchOptions().gotoMain();
+            playPage.gotoMain();
         });
         it('from pioneers team (Hung-Ting Wen): single-player game ends in win/lose', function () {
             mainPage.openNewMatchModal().startPassAndPlay();
@@ -1411,7 +1413,7 @@ var e2eTests;
             });
             expectDisplayed(id('game_over_match_status'));
             l10n.expectTranslate(gameOverModal.getMatchOverStatus(), 'MATCH_STATUS_OPPONENT_WON_WITH_NAME', { OPPONENT_NAME: 'PLAYER_X' });
-            gameOverModal.close();
+            gameOverModal.newMatch(); // Will restart a new single-player game
             tictactoe.run(function () {
                 /**
                  * Second test case: O won
@@ -1432,7 +1434,7 @@ var e2eTests;
             l10n.expectTranslate(gameOverModal.getMatchOverStatus(), 'MATCH_STATUS_OPPONENT_WON_WITH_NAME', { OPPONENT_NAME: 'PLAYER_O' });
             //Cleanup
             gameOverModal.close();
-            playPage.openExtraMatchOptions().gotoMain();
+            playPage.gotoMain();
         });
         it('from pioneers team (Hung-Ting Wen): single player game ends in a tie', function () {
             mainPage.openNewMatchModal().startPassAndPlay();
@@ -1458,10 +1460,10 @@ var e2eTests;
             l10n.expectTranslate(gameOverModal.getMatchOverStatus(), 'MATCH_STATUS_ENDED_IN_TIE', {});
             //Cleanup
             gameOverModal.close();
-            playPage.openExtraMatchOptions().gotoMain();
+            playPage.gotoMain();
         });
         it('from Shuang Wang (Enclosed Combat team): can start a match from gameinvite, player1 blocks player2, and player2 receives block message when invite player1 to a new game', function () {
-            getPage('/gameinvite/?' + browser2NameStr + '=testtictactoe');
+            loadGameinvite(browser2NameStr);
             loadApp();
             notifications.clickNotificationWithIndex(0);
             playPage.openInfoModalForPlayerIndex(1);
@@ -1469,7 +1471,7 @@ var e2eTests;
             playerInfoModal.close();
             playPage.openExtraMatchOptions().dismissMatch();
             runInSecondBrowser(function () {
-                getPage('/gameinvite/?' + browser1NameStr + '=testtictactoe');
+                loadGameinvite(browser1NameStr);
                 loadApp();
                 notifications.clickNotificationWithIndex(0);
                 playPage.openInfoModalForPlayerIndex(1);
@@ -1490,20 +1492,15 @@ var e2eTests;
         });
         it('can invite using userName', function () {
             runInSecondBrowser(function () {
-                getPage('/gameinvite/?' + browser1NameStr + '=testtictactoe');
-                var interpolationParams = { GAME_NAME: "test-tictactoe", PLAYER_NAME: browser1NameStr };
-                var translationId = "GAME_INVITE_PLAYER_NAME_WANTS_TO_PLAY_GAME_NAME_WITH_YOU";
-                l10n.expectTranslate(gameinvitePage.getInviteText(), translationId, interpolationParams);
+                var interpolationParams = loadGameinvite(browser1NameStr);
                 loadApp();
                 notifications.expectOneNotification('IN_APP_NOTIFICATION_GAME_INVITE_TITLE', 'IN_APP_NOTIFICATION_GAME_INVITE_BODY', interpolationParams);
-                // to-do: actually start a match from gameinvite.
                 notifications.closeNotificationWithIndex(0);
             });
         });
         it('can switch languages in gameinvite and it localize correctly', function () {
             runInSecondBrowser(function () {
-                getPage('/gameinvite/?' + browser1NameStr + '=testtictactoe');
-                expectDisplayed(id('gameHeader320x50Url'));
+                loadGameinvite(browser1NameStr);
                 // Testing changing a langague (English->Hebrew->English), and making sure l10n worked.
                 var englishInterpolationParams = { GAME_NAME: "test-tictactoe", PLAYER_NAME: browser1NameStr };
                 var translationId = "GAME_INVITE_PLAYER_NAME_WANTS_TO_PLAY_GAME_NAME_WITH_YOU";
@@ -1518,7 +1515,10 @@ var e2eTests;
             });
         });
         function expectModel(ngModel, toBe) {
-            expect(element(by.model(ngModel)).getAttribute('value')).toBe(toBe);
+            var elem = element(by.model(ngModel));
+            waitForElement(elem);
+            waitUntil(function () { return elem.getAttribute('value').then(function (v) { return v === toBe; }); });
+            expect(elem.getAttribute('value')).toBe(toBe);
         }
         it('gameDeveloper login', function () {
             runInSecondBrowser(function () {
@@ -1540,8 +1540,9 @@ var e2eTests;
             });
         });
         it('cleanup any remaining gameinvites', function () {
+            notifications.expectMaybeGameinviteNotification();
             runInSecondBrowser(function () {
-                loadAppAndCloseMyInfoModalAndMaybeGameinviteNotification();
+                notifications.expectMaybeGameinviteNotification();
             });
         });
     });

@@ -10,17 +10,29 @@ module.exports = function(grunt) {
         options: {
           basePath: '.',
           cache: [
-            'http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js',
-            'http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-route.min.js',
+            'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular.min.js',
+            'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular-route.min.js',
+            'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular-animate.min.js',
+            'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular-aria.min.js',
+            // For material design
+            'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular-material.min.js',
+            'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/angular-material.min.css',
+            // Material design icon font
+            //'http://fonts.gstatic.com/s/materialicons/v15/2fcrYFNaTjcS6g4U3t-Y5StnKWgpfO2iSkLzTz-AABg.ttf',
+            'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/fonts/material-icons/2fcrYFNaTjcS6g4U3t-Y5StnKWgpfO2iSkLzTz-AABg.ttf',
+            // Material design Roboto fonts
+            //'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/fonts/roboto/...',
+            'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/fonts/roboto/zN7GBFwfMP4uA6AR0HCoLQ.ttf',
+            'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/fonts/roboto/RxZJdnzeo3R5zSexge8UUaCWcynf_cDxXwCLxiixG1c.ttf',
+            'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/fonts/roboto/d-6IYplOFocCacKzxwXSOKCWcynf_cDxXwCLxiixG1c.ttf',
+            'http://yoav-zibin.github.io/angular-material-with-sourceMappingURL/fonts/roboto/W4wDsBUluyw0tK3tykhXEfesZW2xOQ-xsNqO47m55DA.ttf',
+            
+            // For GamingPlatform
             'http://www.multiplayer-gaming.com/api/loader.min.js?app=v201',
+            'ts/angular-material.js',
+            'ts/app-l10n.js',
             'css/app.min.css',
             'imgs/animatedEllipse.gif',
-            // For material design
-            'http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic',
-            'http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css',
-            'http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js',
-            'http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js',
-            'http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js',
           ],
           network: !isForTesting ? ['*'] : 
             ['http://www.multiplayer-gaming.com/api/app.' + apiVersion + '.min.js',
@@ -35,6 +47,32 @@ module.exports = function(grunt) {
         dest: 'app/index.appcache',
         src: isForTesting ? ['app/imgs/*.*'] : [],
       };
+  }
+  
+  var desiredPrintscreens = [
+    'iPhone4', 'iPhone5', 'iPhone6', 'iPhone6Plus', 'iPad', 'iPadPro', 'Nexus5', 'Nexus7',
+  ];
+  
+  
+  function getProtractorConf(deviceName) {
+    return {
+      options: {
+        configFile: "protractor.conf.js", // Default config file
+        keepAlive: false, // If false, the grunt process stops when the test fails.
+        noColor: false, // If true, protractor will not use colors in its output.
+        args: {
+          params: {deviceName: deviceName}
+        }
+      }
+    };
+  } 
+  
+  var protractorConf = {};
+  var allProtractorTasks = [];
+  for (var i = 0; i < desiredPrintscreens.length; i++) {
+    var deviceName = desiredPrintscreens[i];
+    protractorConf[deviceName] = getProtractorConf(deviceName);
+    allProtractorTasks.push('protractor:' + deviceName);
   }
   
   grunt.initConfig({
@@ -54,7 +92,7 @@ module.exports = function(grunt) {
         },
         processors: [
           require('autoprefixer')(), // add vendor prefixes
-          require('cssnano')() // minify the result
+          require('cssnano')({safe: true}) // minify the result, skipping unsafe optimizations
         ]
       },
       app: {
@@ -89,17 +127,7 @@ module.exports = function(grunt) {
             runInBackground: true
         }
     },
-    protractor: {
-      options: {
-        configFile: "protractor.conf.js", // Default config file
-        keepAlive: false, // If false, the grunt process stops when the test fails.
-        noColor: false, // If true, protractor will not use colors in its output.
-        args: {
-          // Arguments passed to the command
-        }
-      },
-      all: {}
-    },
+    protractor: protractorConf,
   });
 
   require('load-grunt-tasks')(grunt);
@@ -107,11 +135,17 @@ module.exports = function(grunt) {
   grunt.registerTask('default', [
       'ts',
       'postcss',
-      'manifest:forTesting',
-      'http-server', 'protractor',
       'manifest:forProduction']);
-  grunt.registerTask('skipProtractor', ['ts',
+  grunt.registerTask('testProtractor', [
+      'ts',
       'postcss',
+      'manifest:forTesting',
+      'http-server', 'protractor:iPhone4',
       'manifest:forProduction']);
-
+  grunt.registerTask('createPrintscreens', [
+      'ts',
+      'postcss',
+      'manifest:forTesting',
+      'http-server'].concat(allProtractorTasks).concat([
+      'manifest:forProduction']));
 };
